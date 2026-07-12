@@ -87,7 +87,7 @@ export default function HomePage() {
       'name': 'Vasudev Dhakar Freelance Web Developer',
       'image': 'https://vasu.design/icon.png',
       'url': 'https://vasu.design',
-      'telephone': '+918888888888',
+      'telephone': '+917742658593',
       'address': {
         '@type': 'PostalAddress',
         'streetAddress': 'Bhilwara',
