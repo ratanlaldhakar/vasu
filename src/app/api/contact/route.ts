@@ -59,7 +59,7 @@ Message: ${message}`);
             "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
           },
           body: JSON.stringify({
-            from: "onboarding@resend.dev",
+            from: "onboarding@vasuu.bond",
             to: "ratanlaldhakar0@gmail.com",
             subject: `New Project Inquiry: ${packageName || "Contact"} from ${name}`,
             html: html,
@@ -93,7 +93,7 @@ Message: ${message}`);
             "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
           },
           body: JSON.stringify({
-            from: "onboarding@resend.dev",
+            from: "onboarding@vasuu.bond",
             to: email, // Sent directly to the customer's email address
             subject: "We've Received Your Inquiry! 🎉",
             html: customerHtml,
