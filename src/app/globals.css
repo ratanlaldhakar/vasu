@@ -3,10 +3,10 @@
 @theme inline {
   --color-paper: #fdfbf7;
   --color-pencil: #2d2d2d;
-  --color-pencil-muted: #6b6b6a;
-  --color-pencil-light: #828281;
-  --color-pencil-darkish: #575655;
-  --color-pencil-lightest: #aaa9a6;
+  --color-pencil-muted: #3d3d3d;
+  --color-pencil-light: #4a4a49;
+  --color-pencil-darkish: #2d2d2d;
+  --color-pencil-lightest: #6b6b6a;
   --color-erased: #e5e0d8;
   --color-marker: #ff4d4d;
   --color-ballpoint: #2d5da1;
@@ -23,9 +23,6 @@
 
 html {
   scroll-behavior: smooth;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
@@ -35,15 +32,9 @@ body {
   background-image: radial-gradient(#e5e0d8 1.5px, transparent 1.5px);
   background-size: 24px 24px;
   min-height: 100vh;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4, h5, h6, p, span, li, a, button, input, textarea {
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "kern";
   font-kerning: normal;
 }
