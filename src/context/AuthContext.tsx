@@ -12,6 +12,7 @@ interface Profile {
   phone?: string;
   business_name?: string;
   avatar_url?: string;
+  is_admin?: boolean;
   created_at: string;
 }
 
@@ -54,6 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           name: user?.user_metadata?.name || "",
           email: user?.email || "",
           phone: user?.user_metadata?.phone || "",
+          is_admin: user?.user_metadata?.is_admin || false,
           created_at: new Date().toISOString(),
         });
       }
@@ -171,7 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
-  const isAdmin = user ? ADMIN_EMAILS.includes(user.email || "") : false;
+  const isAdmin = profile?.is_admin === true;
 
   return (
     <AuthContext.Provider

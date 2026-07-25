@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     phone TEXT,
     business_name TEXT,
     avatar_url TEXT,
+    is_admin BOOLEAN DEFAULT false,
     updated_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT now()
 );
@@ -45,13 +46,14 @@ CREATE POLICY "Allow individual update own profile" ON public.profiles
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, name, email, phone, business_name)
+  INSERT INTO public.profiles (id, name, email, phone, business_name, is_admin)
   VALUES (
     new.id,
     COALESCE(new.raw_user_meta_data->>'name', ''),
     new.email,
     COALESCE(new.raw_user_meta_data->>'phone', ''),
-    COALESCE(new.raw_user_meta_data->>'business_name', '')
+    COALESCE(new.raw_user_meta_data->>'business_name', ''),
+    COALESCE((new.raw_user_meta_data->>'is_admin')::boolean, false)
   )
   ON CONFLICT (id) DO UPDATE SET
     name = EXCLUDED.name,
