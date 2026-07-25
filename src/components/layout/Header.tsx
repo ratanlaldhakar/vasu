@@ -13,20 +13,6 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
 
-  const isDashboard = pathname?.startsWith('/dashboard') || pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/reset-password';
-  if (isDashboard) return null;
-
-  const links = [
-    { href: '/', label: 'Home' },
-    { href: '/portfolio', label: 'Portfolio' },
-    { href: '/#pricing', label: 'Pricing' },
-    { href: '/about', label: 'About' },
-    { href: '/contact', label: 'Contact' },
-    user 
-      ? { href: '/dashboard', label: 'Dashboard' } 
-      : { href: '/login', label: 'Login' }
-  ];
-
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = 'hidden';
@@ -49,6 +35,20 @@ export function Header() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const isDashboard = pathname?.startsWith('/dashboard') || pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/reset-password';
+  if (isDashboard) return null;
+
+  const links = [
+    { href: '/', label: 'Home' },
+    { href: '/portfolio', label: 'Portfolio' },
+    { href: '/#pricing', label: 'Pricing' },
+    { href: '/about', label: 'About' },
+    { href: '/contact', label: 'Contact' },
+    user 
+      ? { href: '/dashboard', label: 'Dashboard' } 
+      : { href: '/login', label: 'Login' }
+  ];
 
   const handleHireClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (pathname === '/') {
