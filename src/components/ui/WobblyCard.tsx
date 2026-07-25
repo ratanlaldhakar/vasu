@@ -40,11 +40,14 @@ export function WobblyCard({
     const y = e.clientY - rect.top;
     const xc = rect.width / 2;
     const yc = rect.height / 2;
-    const angleX = (yc - y) / 12; // Max tilt rotation
-    const angleY = (x - xc) / 12;
+
+    // Normalize tilt angle based on card size to prevent extreme warping on wide elements
+    const maxTilt = 4; // Max tilt rotation in degrees
+    const angleX = yc > 0 ? ((yc - y) / yc) * maxTilt : 0;
+    const angleY = xc > 0 ? ((x - xc) / xc) * maxTilt : 0;
 
     card.style.transition = "transform 0.1s ease-out, box-shadow 0.3s ease";
-    card.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateY(${angleY}deg) rotate(${rotation}deg) scale3d(1.02, 1.02, 1.02)`;
+    card.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateY(${angleY}deg) rotate(${rotation}deg) scale3d(1.01, 1.01, 1.01)`;
     card.style.boxShadow = "8px 8px 0px 0px #2d2d2d";
     card.style.zIndex = "10";
   };
