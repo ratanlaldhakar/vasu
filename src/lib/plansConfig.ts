@@ -17,3 +17,9 @@ export function getPlanKey(planName: string): PlanKey {
   if (name === "business") return "business";
   throw new Error(`Invalid plan: ${planName}`);
 }
+
+export const ADMIN_EMAILS = [
+  "ratanlaldhakar0@gmail.com",
+  "vasu@amrityogacenter.in",
+  "shree@amrityogacenter.in"
+];

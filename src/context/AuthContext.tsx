@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
+import { ADMIN_EMAILS } from "@/lib/plansConfig";
 
 interface Profile {
   id: string;
@@ -18,6 +19,7 @@ interface AuthContextType {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
+  isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, name: string, phone?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -169,12 +171,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
+  const isAdmin = user ? ADMIN_EMAILS.includes(user.email || "") : false;
+
   return (
     <AuthContext.Provider
       value={{
         user,
         profile,
         loading,
+        isAdmin,
         signIn,
         signUp,
         signOut,
