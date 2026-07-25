@@ -11,7 +11,7 @@ import { Palette, Github, Chrome } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
-  const { signIn, user, loading } = useAuth();
+  const { signIn, user, loading, isAdmin } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,9 +20,13 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.push("/dashboard");
+      if (isAdmin) {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
     }
-  }, [user, loading, router]);
+  }, [user, loading, isAdmin, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +43,12 @@ export default function LoginPage() {
       if (error) {
         setErrorMsg(error.message || "Invalid credentials.");
       } else {
-        router.push("/dashboard");
+        // Redirect logic handled by useEffect, but can do a fast push too
+        if (isAdmin) {
+          router.push("/admin");
+        } else {
+          router.push("/dashboard");
+        }
       }
     } catch (err: any) {
       setErrorMsg("An unexpected error occurred. Please try again.");

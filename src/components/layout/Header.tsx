@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 
 export function Header() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
@@ -36,7 +36,7 @@ export function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const isDashboard = pathname?.startsWith('/dashboard') || pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/reset-password';
+  const isDashboard = pathname?.startsWith('/dashboard') || pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/reset-password' || pathname?.startsWith('/admin');
   if (isDashboard) return null;
 
   const links = [
@@ -46,7 +46,7 @@ export function Header() {
     { href: '/about', label: 'About' },
     { href: '/contact', label: 'Contact' },
     user 
-      ? { href: '/dashboard', label: 'Dashboard' } 
+      ? (isAdmin ? { href: '/admin', label: 'Admin Panel' } : { href: '/dashboard', label: 'Dashboard' })
       : { href: '/login', label: 'Login' }
   ];
 

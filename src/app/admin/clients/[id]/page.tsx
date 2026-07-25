@@ -16,7 +16,7 @@ import {
   ArrowLeft,
   CheckCircle,
   AlertCircle,
-  FileCheck
+  Plus
 } from "lucide-react";
 import Link from "next/link";
 
@@ -59,6 +59,7 @@ interface PaymentRecord {
   order_id: string;
   status: string;
   created_at: string;
+  plan_name?: string;
 }
 
 export default function ClientManagementPage({ params }: PageProps) {
@@ -99,6 +100,15 @@ export default function ClientManagementPage({ params }: PageProps) {
   
   // Storage upload select
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  // Form States - Manual Invoice Creator
+  const [invPlanName, setInvPlanName] = useState("Professional");
+  const [invPriceText, setInvPriceText] = useState("₹5,999");
+  const [invAmount, setInvAmount] = useState(5999);
+  const [invStatus, setInvStatus] = useState("Paid");
+  const [invPayId, setInvPayId] = useState("");
+  const [invLoading, setInvLoading] = useState(false);
+  const [invSuccess, setInvSuccess] = useState("");
 
   const fetchClientData = async () => {
     if (!supabase || !clientId) return;
@@ -145,12 +155,31 @@ export default function ClientManagementPage({ params }: PageProps) {
       // 4. Fetch Payments
       const { data: paymentsData, error: paymentsErr } = await supabase
         .from("payments")
-        .select("*")
+        .select(`
+          id,
+          amount,
+          payment_id,
+          order_id,
+          status,
+          created_at,
+          bookings (
+            plan_name
+          )
+        `)
         .eq("client_id", clientId)
         .order("created_at", { ascending: false });
 
       if (!paymentsErr && paymentsData) {
-        setPayments(paymentsData);
+        const formatted = (paymentsData as any[]).map(pay => ({
+          id: pay.id,
+          amount: pay.amount,
+          payment_id: pay.payment_id,
+          order_id: pay.order_id,
+          status: pay.status,
+          created_at: pay.created_at,
+          plan_name: pay.bookings?.plan_name || "Manual Package"
+        }));
+        setPayments(formatted);
       }
     } catch (err) {
       console.error(err);
@@ -258,16 +287,12 @@ export default function ClientManagementPage({ params }: PageProps) {
         throw new Error("Please select a file to upload or paste a direct URL link.");
       }
 
-      if (!finalName) {
-        finalName = "Design Resource Document";
-      }
-
       // Write row to files table
       const { data: newFile, error: fileInsertErr } = await supabase
         .from("files")
         .insert({
           client_id: client.id,
-          name: finalName,
+          name: finalName || "Resource File",
           url: finalUrl,
           type: fileType,
           size_bytes: finalSize
@@ -335,6 +360,78 @@ export default function ClientManagementPage({ params }: PageProps) {
       alert("Error sending notification: " + err.message);
     } finally {
       setNotifLoading(false);
+    }
+  };
+
+  // Create Manual Booking & Invoice
+  const handleCreateInvoice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!supabase || !client) return;
+
+    setInvLoading(true);
+    setInvSuccess("");
+
+    try {
+      // 1. Create Booking
+      const { data: booking, error: bookingErr } = await supabase
+        .from("bookings")
+        .insert({
+          client_id: client.id,
+          plan_name: invPlanName,
+          price: invPriceText,
+          payment_status: invStatus,
+          project_status: "Planning",
+          estimated_delivery: "7-10 Days"
+        })
+        .select()
+        .single();
+
+      if (bookingErr) throw bookingErr;
+
+      // 2. Create Payment log if marked as Paid
+      if (invStatus === "Paid") {
+        const { data: payment, error: paymentErr } = await supabase
+          .from("payments")
+          .insert({
+            booking_id: booking.id,
+            client_id: client.id,
+            amount: Number(invAmount),
+            payment_id: invPayId || `MANUAL-${Date.now()}`,
+            order_id: `MANUAL-ORDER-${Date.now()}`,
+            status: "success"
+          })
+          .select()
+          .single();
+
+        if (paymentErr) throw paymentErr;
+
+        setPayments(prev => [
+          {
+            id: payment.id,
+            amount: payment.amount,
+            payment_id: payment.payment_id,
+            order_id: payment.order_id,
+            status: payment.status,
+            created_at: payment.created_at,
+            plan_name: invPlanName
+          },
+          ...prev
+        ]);
+      }
+
+      setInvSuccess("Invoice & Booking created successfully!");
+      setInvPayId("");
+      
+      // Auto trigger project setup if client does not have a tracker yet
+      if (!project) {
+        setProjTitle(`${invPlanName} Website Project`);
+        setProjPlan(invPlanName);
+        setProjDesc(`Development of your ${invPlanName} package plan.`);
+      }
+    } catch (err: any) {
+      alert("Invoice creation failed: " + err.message);
+    } finally {
+      setInvLoading(false);
     }
   };
 
@@ -499,7 +596,7 @@ export default function ClientManagementPage({ params }: PageProps) {
 
           {/* Form */}
           <form onSubmit={handleFileShare} className="space-y-4 mb-6 border-b-2 border-dashed border-pencil/20 pb-6">
-            {/* File upload from local system */}
+            {/* File upload from local PC */}
             <div className="space-y-1">
               <label className="block font-[family-name:var(--font-kalam-var)] font-bold text-pencil text-lg">
                 Upload File from PC (Recommended)
@@ -673,7 +770,7 @@ export default function ClientManagementPage({ params }: PageProps) {
           </form>
         </WobblyCard>
 
-        {/* 4. Client Bookings & Razorpay Log */}
+        {/* 4. Manual Invoice Creator Card */}
         <WobblyCard
           variant="default"
           hover={false}
@@ -681,38 +778,119 @@ export default function ClientManagementPage({ params }: PageProps) {
         >
           <h2 className="text-2xl font-bold text-pencil mb-5 font-[family-name:var(--font-kalam-var)] flex items-center gap-2">
             <CreditCard className="w-5 h-5 text-marker" />
-            Billing & Razorpay logs
+            Invoice & Booking Generator
           </h2>
 
-          <div className="space-y-3">
+          {invSuccess && (
+            <div className="mb-4 p-2.5 border border-dashed border-ballpoint bg-ballpoint/5 text-ballpoint text-sm font-bold font-[family-name:var(--font-kalam-var)] flex items-center gap-1.5 wobbly-sm">
+              <CheckCircle className="w-4 h-4 flex-shrink-0" />
+              {invSuccess}
+            </div>
+          )}
+
+          <form onSubmit={handleCreateInvoice} className="space-y-4 mb-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label htmlFor="inv-plan" className="block font-[family-name:var(--font-kalam-var)] font-bold text-pencil text-lg">
+                  Package Plan
+                </label>
+                <select
+                  id="inv-plan"
+                  className="w-full wobbly border-3 border-pencil bg-white px-4 py-2.5 min-h-[52px] font-[family-name:var(--font-patrick-var)] text-pencil text-lg focus:outline-none"
+                  value={invPlanName}
+                  onChange={(e) => setInvPlanName(e.target.value)}
+                >
+                  <option value="Starter">Starter Plan</option>
+                  <option value="Professional">Professional Plan</option>
+                  <option value="Business">Business Plan</option>
+                  <option value="Custom">Custom Plan</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor="inv-status" className="block font-[family-name:var(--font-kalam-var)] font-bold text-pencil text-lg">
+                  Payment Status
+                </label>
+                <select
+                  id="inv-status"
+                  className="w-full wobbly border-3 border-pencil bg-white px-4 py-2.5 min-h-[52px] font-[family-name:var(--font-patrick-var)] text-pencil text-lg focus:outline-none"
+                  value={invStatus}
+                  onChange={(e) => setInvStatus(e.target.value)}
+                >
+                  <option value="Paid">Paid (Success)</option>
+                  <option value="Pending">Pending (Unpaid)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <WobblyInput
+                id="inv-price"
+                type="text"
+                label="Price (display label)"
+                placeholder="e.g. ₹5,999"
+                value={invPriceText}
+                onChange={(e) => setInvPriceText(e.target.value)}
+                required
+              />
+
+              <WobblyInput
+                id="inv-amount"
+                type="number"
+                label="Amount (numeric value)"
+                placeholder="5999"
+                value={invAmount}
+                onChange={(e) => setInvAmount(Number(e.target.value))}
+                required
+              />
+            </div>
+
+            {invStatus === "Paid" && (
+              <WobblyInput
+                id="inv-payid"
+                type="text"
+                label="Razorpay Payment ID (optional)"
+                placeholder="e.g. pay_Lnk9eA2y..."
+                value={invPayId}
+                onChange={(e) => setInvPayId(e.target.value)}
+              />
+            )}
+
+            <WobblyButton type="submit" disabled={invLoading} className="w-full">
+              <Plus className="w-4 h-4 mr-1.5" />
+              {invLoading ? "Generating..." : "Generate Invoice Booking"}
+            </WobblyButton>
+          </form>
+
+          {/* Billing references list */}
+          <div className="space-y-3 border-t-2 border-dashed border-pencil/20 pt-4">
+            <h4 className="text-base font-bold text-pencil font-[family-name:var(--font-kalam-var)]">
+              Payments & Bookings History Log
+            </h4>
             {payments.length > 0 ? (
-              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+              <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
                 {payments.map((pay) => (
-                  <div key={pay.id} className="p-3 border-2 border-pencil wobbly-sm bg-paper/10 text-xs font-sans space-y-1.5">
+                  <div key={pay.id} className="p-3 border-2 border-pencil wobbly-sm bg-paper/10 text-xs font-sans space-y-1">
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-pencil text-sm">
-                        ₹{pay.amount.toLocaleString("en-IN")} Received
+                        ₹{pay.amount.toLocaleString("en-IN")} Received for {pay.plan_name}
                       </span>
                       <span className="text-[10px] text-ballpoint font-bold uppercase tracking-wider">
                         {pay.status}
                       </span>
                     </div>
                     <div className="text-pencil-light font-mono">
-                      Pay ID: <span className="text-pencil select-all bg-white border px-1">{pay.payment_id}</span>
-                    </div>
-                    <div className="text-pencil-light font-mono">
-                      Order ID: <span className="text-pencil select-all bg-white border px-1">{pay.order_id || "N/A"}</span>
+                      Ref ID: <span className="text-pencil select-all bg-white border px-1">{pay.payment_id}</span>
                     </div>
                     <div className="text-[10px] text-pencil-lightest text-right">
-                      Date: {new Date(pay.created_at).toLocaleString("en-IN")}
+                      {new Date(pay.created_at).toLocaleString("en-IN")}
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-pencil-lightest">
-                <AlertCircle className="w-8 h-8 mx-auto mb-2 text-pencil-lightest" />
-                <p className="font-[family-name:var(--font-patrick-var)] text-base">
+              <div className="text-center py-6 text-pencil-lightest">
+                <p className="font-[family-name:var(--font-patrick-var)] text-sm">
                   No bookings or transactions recorded for this client.
                 </p>
               </div>

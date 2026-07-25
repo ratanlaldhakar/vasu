@@ -10,7 +10,7 @@ import { WobblyButton } from "@/components/ui/WobblyButton";
 import { Palette } from "lucide-react";
 
 export default function SignupPage() {
-  const { signUp, user, loading } = useAuth();
+  const { signUp, user, loading, isAdmin } = useAuth();
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -25,9 +25,13 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.push("/dashboard");
+      if (isAdmin) {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
     }
-  }, [user, loading, router]);
+  }, [user, loading, isAdmin, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
