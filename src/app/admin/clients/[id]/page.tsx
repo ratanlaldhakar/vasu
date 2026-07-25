@@ -270,7 +270,10 @@ export default function ClientManagementPage({ params }: PageProps) {
           });
 
         if (error) {
-          throw new Error(`Storage upload failed: ${error.message}. Make sure the 'deliverables' bucket exists in your Supabase storage.`);
+          if (error.message.includes("not found") || error.message.includes("Bucket")) {
+            throw new Error(`The Supabase Storage bucket 'deliverables' is missing. Please run the SQL setup snippet in Supabase SQL Editor, or create a Public bucket named 'deliverables' under Supabase Dashboard -> Storage -> New Bucket.`);
+          }
+          throw error;
         }
 
         // Get public URL
@@ -301,6 +304,16 @@ export default function ClientManagementPage({ params }: PageProps) {
         .single();
 
       if (fileInsertErr) throw fileInsertErr;
+
+      // Log notification entry for client
+      await supabase
+        .from("notifications")
+        .insert({
+          client_id: client.id,
+          title: `📁 New File Shared: ${finalName || "Resource File"}`,
+          content: `Admin shared a new document (${fileType}) in your File Cabinet.`,
+          is_read: false
+        });
 
       setFiles(prev => [newFile, ...prev]);
       setFileShareSuccess("File shared successfully with client portal!");

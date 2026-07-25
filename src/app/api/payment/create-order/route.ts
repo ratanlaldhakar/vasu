@@ -5,17 +5,20 @@ import { PLAN_PRICES, isValidPlan, getPlanKey } from "@/lib/plansConfig";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { planName } = body;
+    const { planName, amount: inputAmount, customAmount } = body;
 
-    if (!planName || !isValidPlan(planName)) {
-      return NextResponse.json(
-        { error: "Invalid plan selected" },
-        { status: 400 }
-      );
+    let amountInRupees = 0;
+
+    if (inputAmount && typeof inputAmount === "number" && inputAmount > 0) {
+      amountInRupees = inputAmount;
+    } else if (customAmount && typeof customAmount === "number" && customAmount > 0) {
+      amountInRupees = customAmount;
+    } else if (planName && isValidPlan(planName)) {
+      const planKey = getPlanKey(planName);
+      amountInRupees = PLAN_PRICES[planKey];
+    } else {
+      amountInRupees = 999; // fallback minimal custom charge
     }
-
-    const planKey = getPlanKey(planName);
-    const amount = PLAN_PRICES[planKey];
 
     const key_id = process.env.RAZORPAY_KEY_ID;
     const key_secret = process.env.RAZORPAY_KEY_SECRET;
@@ -34,13 +37,14 @@ export async function POST(req: NextRequest) {
     });
 
     const order = await razorpay.orders.create({
-      amount: amount * 100, // Amount in paise
+      amount: Math.round(amountInRupees * 100), // Amount in paise
       currency: "INR",
       receipt: `receipt_${Date.now()}`,
     });
 
     return NextResponse.json({
       success: true,
+      id: order.id,
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,

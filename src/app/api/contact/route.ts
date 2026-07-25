@@ -82,7 +82,7 @@ Message: ${message}`);
             packageName: packageName || "Contact Inquiry",
             price: price || "Custom Quote",
             date: new Date().toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" }),
-            website: "https://vasu.design"
+            website: "https://vasuu.bond"
           })
         );
 

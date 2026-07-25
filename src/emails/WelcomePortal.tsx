@@ -28,7 +28,7 @@ export default function WelcomePortal({
   tempPassword = "{{tempPassword}}",
   packageName = "{{package}}",
   price = "{{price}}",
-  website = "https://vasu.design"
+  website = "https://vasuu.bond"
 }: WelcomePortalProps) {
   return (
     <Html>

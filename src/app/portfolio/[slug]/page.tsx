@@ -20,12 +20,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     description: project.description,
     keywords: [...(project.tags || []), "Vasudev Dhakar Portfolio", "Vasu projects", "Web design Bhilwara"],
     alternates: {
-      canonical: `https://vasu.design/portfolio/${slug}`,
+      canonical: `https://vasuu.bond/portfolio/${slug}`,
     },
     openGraph: {
       title: `${project.title} — Vasu Design & Development Portfolio`,
       description: project.description,
-      url: `https://vasu.design/portfolio/${slug}`,
+      url: `https://vasuu.bond/portfolio/${slug}`,
       siteName: 'Vasu Portfolio',
       locale: 'en_IN',
       type: 'article',
@@ -61,19 +61,19 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         '@type': 'ListItem',
         'position': 1,
         'name': 'Home',
-        'item': 'https://vasu.design'
+        'item': 'https://vasuu.bond'
       },
       {
         '@type': 'ListItem',
         'position': 2,
         'name': 'Portfolio',
-        'item': 'https://vasu.design/portfolio'
+        'item': 'https://vasuu.bond/portfolio'
       },
       {
         '@type': 'ListItem',
         'position': 3,
         'name': project.title,
-        'item': `https://vasu.design/portfolio/${slug}`
+        'item': `https://vasuu.bond/portfolio/${slug}`
       }
     ]
   };
@@ -92,7 +92,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
       '@type': 'Person',
       'name': 'Vasudev Dhakar'
     },
-    'url': `https://vasu.design/portfolio/${slug}`
+    'url': `https://vasuu.bond/portfolio/${slug}`
   };
 
   return (

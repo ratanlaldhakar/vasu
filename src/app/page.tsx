@@ -28,12 +28,12 @@ export const metadata: Metadata = {
     'Vasudev Dhakar Portfolio'
   ],
   alternates: {
-    canonical: 'https://vasu.design',
+    canonical: 'https://vasuu.bond',
   },
   openGraph: {
     title: 'Vasu — Web Developer & UI/UX Designer in Bhilwara, Rajasthan',
     description: 'Looking for a professional Web Developer in Bhilwara? Vasudev Dhakar (Vasu) specializes in Next.js, React, and premium UI/UX design.',
-    url: 'https://vasu.design',
+    url: 'https://vasuu.bond',
     siteName: 'Vasu Portfolio',
     locale: 'en_IN',
     type: 'website',
@@ -54,8 +54,8 @@ export default function HomePage() {
       'name': 'Vasudev Dhakar',
       'alternateName': 'Vasu',
       'jobTitle': 'Freelance Web Developer & UI/UX Designer',
-      'url': 'https://vasu.design',
-      'image': 'https://vasu.design/icon.png',
+      'url': 'https://vasuu.bond',
+      'image': 'https://vasuu.bond/icon.png',
       'description': 'Freelance web developer specializing in modern websites, premium UI/UX design, responsive development, and high-performance Next.js/React web applications in Bhilwara, Rajasthan, India.',
       'address': {
         '@type': 'PostalAddress',
@@ -75,7 +75,7 @@ export default function HomePage() {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
       'name': 'Vasu Portfolio',
-      'url': 'https://vasu.design',
+      'url': 'https://vasuu.bond',
       'publisher': {
         '@type': 'Person',
         'name': 'Vasudev Dhakar'
@@ -85,8 +85,8 @@ export default function HomePage() {
       '@context': 'https://schema.org',
       '@type': 'ProfessionalService',
       'name': 'Vasudev Dhakar Freelance Web Developer',
-      'image': 'https://vasu.design/icon.png',
-      'url': 'https://vasu.design',
+      'image': 'https://vasuu.bond/icon.png',
+      'url': 'https://vasuu.bond',
       'telephone': '+917742658593',
       'address': {
         '@type': 'PostalAddress',

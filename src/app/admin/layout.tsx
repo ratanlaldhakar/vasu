@@ -12,10 +12,13 @@ import {
   X, 
   Palette,
   Home,
-  ShieldAlert
+  ShieldAlert,
+  CreditCard
 } from "lucide-react";
 import { WobblyCard } from "@/components/ui/WobblyCard";
 import { WobblyButton } from "@/components/ui/WobblyButton";
+
+import { AdminMobileNav } from "@/components/admin/AdminMobileNav";
 
 export default function AdminLayout({
   children,
@@ -79,13 +82,14 @@ export default function AdminLayout({
 
   const menuItems = [
     { href: "/admin", label: "All Clients", icon: Users },
+    { href: "/admin/invoices", label: "Invoices & Billing", icon: CreditCard },
     { href: "/admin/messages", label: "Messages Thread", icon: MessageSquare },
   ];
 
   return (
-    <div className="min-h-screen bg-paper bg-[radial-gradient(#e5e0d8_1.5px,transparent_1.5px)] bg-[size:24px_24px] flex flex-col md:flex-row text-pencil">
+    <div className="min-h-screen bg-paper bg-[radial-gradient(#e5e0d8_1.5px,transparent_1.5px)] bg-[size:24px_24px] flex flex-col md:flex-row text-pencil pb-20 md:pb-0">
       {/* Mobile Header */}
-      <div className="md:hidden h-16 border-b-3 border-pencil bg-white flex items-center justify-between px-4 sticky top-0 z-40">
+      <div className="md:hidden h-16 border-b-3 border-pencil bg-white/95 backdrop-blur-md flex items-center justify-between px-4 sticky top-0 z-40 shadow-hard-sm">
         <Link href="/admin" className="flex items-center gap-2">
           <div className="w-8 h-8 bg-marker border-2 border-pencil shadow-hard-sm flex items-center justify-center wobbly">
             <Palette className="w-4 h-4 text-white" strokeWidth={3} />
@@ -103,12 +107,12 @@ export default function AdminLayout({
       </div>
 
       {/* Sidebar Navigation */}
-      <aside className={`fixed inset-y-0 left-0 z-30 w-64 bg-white border-r-3 border-pencil p-6 flex flex-col justify-between transition-transform duration-200 ease-in-out md:translate-x-0 md:static ${
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 md:w-64 bg-white border-r-3 border-pencil p-6 flex flex-col justify-between transition-transform duration-200 ease-in-out md:translate-x-0 md:static ${
         mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
       }`}>
         <div className="space-y-8">
           {/* Logo */}
-          <div className="hidden md:flex items-center gap-2.5">
+          <div className="flex items-center justify-between">
             <Link href="/admin" className="flex items-center gap-2.5 group">
               <div className="w-9 h-9 bg-marker border-3 border-pencil shadow-hard-sm flex items-center justify-center wobbly">
                 <Palette className="w-5 h-5 text-white" strokeWidth={3} />
@@ -117,6 +121,12 @@ export default function AdminLayout({
                 Admin Console
               </span>
             </Link>
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="md:hidden p-1 border-2 border-pencil rounded-md"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           {/* Admin badge */}
@@ -132,7 +142,6 @@ export default function AdminLayout({
           {/* Nav List */}
           <nav className="space-y-1.5">
             {menuItems.map((item) => {
-              // Exact matches or sub-matches for admin client detail pages
               const isActive = item.href === "/admin" 
                 ? (pathname === "/admin" || pathname.startsWith("/admin/clients/"))
                 : pathname === item.href;
@@ -142,7 +151,7 @@ export default function AdminLayout({
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`wobbly-sm flex items-center gap-3 px-4 py-3 border-2 border-transparent font-[family-name:var(--font-patrick-var)] text-lg font-bold transition-all duration-100 min-h-[44px] ${
+                  className={`wobbly-sm flex items-center gap-3 px-4 py-3 border-2 border-transparent font-[family-name:var(--font-patrick-var)] text-lg font-bold transition-all duration-100 min-h-[48px] ${
                     isActive
                       ? "bg-postit border-pencil text-pencil shadow-hard-sm translate-x-[2px] translate-y-[2px]"
                       : "hover:bg-erased/40 hover:border-pencil/20 text-pencil-muted hover:text-pencil"
@@ -156,7 +165,7 @@ export default function AdminLayout({
 
             <Link
               href="/"
-              className="wobbly-sm flex items-center gap-3 px-4 py-3 border-2 border-transparent font-[family-name:var(--font-patrick-var)] text-lg font-bold text-pencil-muted hover:bg-erased/40 hover:border-pencil/20 hover:text-pencil min-h-[44px]"
+              className="wobbly-sm flex items-center gap-3 px-4 py-3 border-2 border-transparent font-[family-name:var(--font-patrick-var)] text-lg font-bold text-pencil-muted hover:bg-erased/40 hover:border-pencil/20 hover:text-pencil min-h-[48px]"
             >
               <Home className="w-5 h-5 text-pencil-light" />
               Public Website
@@ -168,7 +177,7 @@ export default function AdminLayout({
         <div className="pt-4 border-t-2 border-dashed border-pencil/20">
           <button
             onClick={handleLogout}
-            className="w-full wobbly-sm flex items-center gap-3 px-4 py-3 border-2 border-transparent font-[family-name:var(--font-kalam-var)] text-base font-bold text-marker hover:bg-marker/5 hover:border-marker/30 transition-all duration-100 cursor-pointer min-h-[44px]"
+            className="w-full wobbly-sm flex items-center gap-3 px-4 py-3 border-2 border-transparent font-[family-name:var(--font-kalam-var)] text-base font-bold text-marker hover:bg-marker/5 hover:border-marker/30 transition-all duration-100 cursor-pointer min-h-[48px]"
           >
             <LogOut className="w-5 h-5 text-marker" />
             Logout Console
@@ -180,14 +189,17 @@ export default function AdminLayout({
       {mobileMenuOpen && (
         <div
           onClick={() => setMobileMenuOpen(false)}
-          className="fixed inset-0 bg-pencil/30 z-20 md:hidden"
+          className="fixed inset-0 bg-pencil/40 backdrop-blur-xs z-40 md:hidden"
         />
       )}
 
       {/* Main Workspace */}
-      <main className="flex-1 p-6 md:p-10 md:max-w-[calc(100vw-256px)] overflow-x-hidden">
+      <main className="flex-1 p-4 sm:p-6 md:p-10 md:max-w-[calc(100vw-256px)] overflow-x-hidden">
         {children}
       </main>
+
+      {/* Mobile Bottom Quick Navigation Bar */}
+      <AdminMobileNav />
     </div>
   );
 }

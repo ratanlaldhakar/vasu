@@ -104,7 +104,7 @@ export default function LoginPage() {
         <WobblyCard
           variant="default"
           decoration="tape"
-          rotation={-0.5}
+          rotation={0}
           hover={false}
           tilt={false}
           className="w-full relative bg-white border-3 border-pencil shadow-hard-lg p-6 md:p-8"

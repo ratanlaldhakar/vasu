@@ -5,7 +5,8 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { WobblyCard } from "@/components/ui/WobblyCard";
 import { WobblyButton } from "@/components/ui/WobblyButton";
-import { CreditCard, Calendar, FileText, AlertCircle } from "lucide-react";
+import { CreditCard, Calendar, FileText, AlertCircle, Download } from "lucide-react";
+import { InvoiceModal, InvoiceData } from "@/components/ui/InvoiceModal";
 
 interface PaymentRecord {
   id: string;
@@ -20,56 +21,139 @@ interface PaymentRecord {
   plan_name?: string;
 }
 
+const loadRazorpayScript = () => {
+  return new Promise<boolean>((resolve) => {
+    if (typeof window !== "undefined" && (window as any).Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 export default function BookingsAndInvoicesPage() {
   const { user } = useAuth();
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeInvoice, setActiveInvoice] = useState<InvoiceData | null>(null);
+  const [payingId, setPayingId] = useState<string | null>(null);
+
+  const fetchBillingData = async () => {
+    if (!supabase || !user) return;
+    try {
+      const { data, error } = await supabase
+        .from("payments")
+        .select(`
+          id,
+          amount,
+          payment_id,
+          order_id,
+          status,
+          created_at,
+          bookings (
+            plan_name
+          )
+        `)
+        .eq("client_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (!error && data) {
+        // Format records to extract plan name from the joined bookings
+        const formatted = (data as any[]).map(pay => ({
+          id: pay.id,
+          amount: pay.amount,
+          payment_id: pay.payment_id,
+          order_id: pay.order_id,
+          status: pay.status,
+          created_at: pay.created_at,
+          plan_name: pay.bookings?.plan_name || "Development Service",
+          booking_id: null
+        }));
+        setPayments(formatted);
+      }
+    } catch (err) {
+      console.error("Error fetching payments:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchBillingData = async () => {
-      if (!supabase || !user) return;
-      try {
-        const { data, error } = await supabase
-          .from("payments")
-          .select(`
-            id,
-            amount,
-            payment_id,
-            order_id,
-            status,
-            created_at,
-            bookings (
-              plan_name
-            )
-          `)
-          .eq("client_id", user.id)
-          .order("created_at", { ascending: false });
-
-        if (!error && data) {
-          // Format records to extract plan name from the joined bookings
-          const formatted = (data as any[]).map(pay => ({
-            id: pay.id,
-            amount: pay.amount,
-            payment_id: pay.payment_id,
-            order_id: pay.order_id,
-            status: pay.status,
-            created_at: pay.created_at,
-            plan_name: pay.bookings?.plan_name || "Development Package",
-            booking_id: null
-          }));
-          setPayments(formatted);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (user) {
-      fetchBillingData();
-    }
+    fetchBillingData();
   }, [user]);
+
+  const handleDirectPay = async (pay: PaymentRecord) => {
+    if (!supabase || !user) return;
+    setPayingId(pay.id);
+    try {
+      const loaded = await loadRazorpayScript();
+      if (!loaded) throw new Error("Failed to load Razorpay Payment Gateway.");
+
+      const res = await fetch("/api/payment/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: pay.amount,
+          packageName: pay.plan_name || "Service Charge"
+        })
+      });
+
+      if (!res.ok) throw new Error("Could not initialize Razorpay order.");
+      const orderData = await res.json();
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_SyoANIIxpmdHxD",
+        amount: orderData.amount,
+        currency: "INR",
+        name: "Vasuu Design Studio",
+        description: `Payment for ${pay.plan_name}`,
+        order_id: orderData.id,
+        handler: async function (response: any) {
+          try {
+            if (supabase) {
+              await supabase
+                .from("payments")
+                .update({
+                  status: "success",
+                  payment_id: response.razorpay_payment_id,
+                  order_id: response.razorpay_order_id
+                })
+                .eq("id", pay.id);
+
+              await supabase
+                .from("bookings")
+                .update({ payment_status: "Paid" })
+                .eq("client_id", user.id);
+            }
+
+            alert(`🎉 Payment of ₹${pay.amount?.toLocaleString("en-IN")} completed successfully!`);
+            fetchBillingData();
+          } catch (err: any) {
+            console.error("Payment error:", err);
+          } finally {
+            setPayingId(null);
+          }
+        },
+        prefill: {
+          name: user.user_metadata?.name || user.email,
+          email: user.email
+        },
+        theme: { color: "#2d5da1" }
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err: any) {
+      alert("Payment Launch Error: " + err.message);
+    } finally {
+      setPayingId(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -124,8 +208,10 @@ export default function BookingsAndInvoicesPage() {
                   <div className="text-2xl font-bold text-marker font-[family-name:var(--font-kalam-var)]">
                     ₹{pay.amount.toLocaleString("en-IN")}
                   </div>
-                  <span className="text-[11px] uppercase tracking-wider font-bold text-ballpoint">
-                    Payment Status: Success ✓
+                  <span className={`text-[11px] uppercase tracking-wider font-bold ${
+                    pay.status?.toLowerCase() === "pending" ? "text-marker" : "text-ballpoint"
+                  }`}>
+                    Payment Status: {pay.status?.toLowerCase() === "pending" ? "PENDING (UNPAID) ⚠️" : "Success ✓"}
                   </span>
                 </div>
               </div>
@@ -147,24 +233,97 @@ export default function BookingsAndInvoicesPage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex justify-end gap-3 pt-2">
-                <WobblyButton
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => alert("Invoice PDF downloads will be activated soon. A copy has been dispatched to your email inbox.")}
-                >
-                  <FileText className="w-4 h-4 mr-1.5" />
-                  Download Invoice (soon)
-                </WobblyButton>
-                <WobblyButton
-                  size="sm"
-                  onClick={() => alert("Payment receipt rendering has been sent to your email. Check your email archive.")}
-                >
-                  Download Receipt
-                </WobblyButton>
+              <div className="flex flex-wrap justify-end gap-3 pt-2">
+                {pay.status?.toLowerCase() === "pending" ? (
+                  <>
+                    <WobblyButton
+                      size="sm"
+                      variant="marker"
+                      onClick={() => handleDirectPay(pay)}
+                      disabled={payingId === pay.id}
+                    >
+                      <CreditCard className="w-4 h-4 mr-1.5" />
+                      {payingId === pay.id ? "Opening..." : `Pay ₹${pay.amount?.toLocaleString("en-IN")} Online Now`}
+                    </WobblyButton>
+                    <WobblyButton
+                      size="sm"
+                      variant="ghost"
+                      onClick={() =>
+                        setActiveInvoice({
+                          invoiceNumber: `INV-${pay.id.substring(0, 8).toUpperCase()}`,
+                          date: new Date(pay.created_at).toLocaleDateString("en-IN"),
+                          clientName: user?.user_metadata?.name || user?.email || "Valued Client",
+                          clientEmail: user?.email || "",
+                          clientBusiness: user?.user_metadata?.business_name,
+                          planName: pay.plan_name || "Development Service",
+                          amountText: `₹${pay.amount?.toLocaleString("en-IN") || "5,999"}`,
+                          amountNum: pay.amount || 5999,
+                          paymentId: pay.payment_id,
+                          orderId: pay.order_id,
+                          status: "PENDING"
+                        })
+                      }
+                    >
+                      <FileText className="w-4 h-4 mr-1.5" />
+                      View Unpaid Invoice
+                    </WobblyButton>
+                  </>
+                ) : (
+                  <>
+                    <WobblyButton
+                      size="sm"
+                      variant="ghost"
+                      onClick={() =>
+                        setActiveInvoice({
+                          invoiceNumber: `INV-${pay.id.substring(0, 8).toUpperCase()}`,
+                          date: new Date(pay.created_at).toLocaleDateString("en-IN"),
+                          clientName: user?.user_metadata?.name || user?.email || "Valued Client",
+                          clientEmail: user?.email || "",
+                          clientBusiness: user?.user_metadata?.business_name,
+                          planName: pay.plan_name || "Development Service",
+                          amountText: `₹${pay.amount?.toLocaleString("en-IN") || "5,999"}`,
+                          amountNum: pay.amount || 5999,
+                          paymentId: pay.payment_id,
+                          orderId: pay.order_id,
+                          status: "SUCCESS"
+                        })
+                      }
+                    >
+                      <FileText className="w-4 h-4 mr-1.5" />
+                      View Invoice
+                    </WobblyButton>
+                    <WobblyButton
+                      size="sm"
+                      onClick={() =>
+                        setActiveInvoice({
+                          invoiceNumber: `REC-${pay.id.substring(0, 8).toUpperCase()}`,
+                          date: new Date(pay.created_at).toLocaleDateString("en-IN"),
+                          clientName: user?.user_metadata?.name || user?.email || "Valued Client",
+                          clientEmail: user?.email || "",
+                          clientBusiness: user?.user_metadata?.business_name,
+                          planName: pay.plan_name || "Development Service",
+                          amountText: `₹${pay.amount?.toLocaleString("en-IN") || "5,999"}`,
+                          amountNum: pay.amount || 5999,
+                          paymentId: pay.payment_id,
+                          orderId: pay.order_id,
+                          status: "SUCCESS"
+                        })
+                      }
+                    >
+                      <Download className="w-4 h-4 mr-1.5" />
+                      Download Receipt
+                    </WobblyButton>
+                  </>
+                )}
               </div>
             </WobblyCard>
           ))}
+
+          {/* Professional Invoice Modal */}
+          <InvoiceModal
+            invoice={activeInvoice}
+            onClose={() => setActiveInvoice(null)}
+          />
         </div>
       ) : (
         <WobblyCard

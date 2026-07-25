@@ -221,7 +221,7 @@ export function getEmailHtml({
           This inquiry was sent from your portfolio website contact form.
         </p>
         <p style="font-size: 12px; color: #ff4d4d; margin: 0;">
-          <a href="https://vasu.design" style="color: #ff4d4d; text-decoration: none; font-weight: 500;">vasu.design</a> &bull; &copy; ${new Date().getFullYear()} Vasu
+          <a href="https://vasuu.bond" style="color: #ff4d4d; text-decoration: none; font-weight: 500;">vasuu.bond</a> &bull; &copy; ${new Date().getFullYear()} Vasu
         </p>
       </td>
     </tr>

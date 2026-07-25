@@ -15,12 +15,12 @@ export const metadata: Metadata = {
     "UI UX Designer Projects Rajasthan"
   ],
   alternates: {
-    canonical: "https://vasu.design/portfolio",
+    canonical: "https://vasuu.bond/portfolio",
   },
   openGraph: {
     title: "Vasu's Work — Design & Web Development Portfolio",
     description: "Browse web design and development case studies by Vasu (Vasudev Dhakar).",
-    url: "https://vasu.design/portfolio",
+    url: "https://vasuu.bond/portfolio",
     siteName: "Vasu Portfolio",
     locale: "en_IN",
     type: "website",
@@ -44,13 +44,13 @@ export default async function PortfolioPage() {
         '@type': 'ListItem',
         'position': 1,
         'name': 'Home',
-        'item': 'https://vasu.design'
+        'item': 'https://vasuu.bond'
       },
       {
         '@type': 'ListItem',
         'position': 2,
         'name': 'Portfolio',
-        'item': 'https://vasu.design/portfolio'
+        'item': 'https://vasuu.bond/portfolio'
       }
     ]
   };

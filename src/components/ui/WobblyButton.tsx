@@ -4,7 +4,7 @@ import { forwardRef } from "react";
 import Link from "next/link";
 
 interface WobblyButtonProps {
-  variant?: "primary" | "secondary" | "ghost";
+  variant?: "primary" | "secondary" | "ghost" | "marker" | "ballpoint";
   size?: "sm" | "md" | "lg";
   href?: string;
   className?: string;
@@ -23,7 +23,11 @@ export const WobblyButton = forwardRef<any, WobblyButtonProps>(
       secondary:
         "bg-postit text-pencil shadow-hard-md hover:shadow-hard-sm hover:translate-x-[2px] hover:translate-y-[2px]",
       ghost:
-        "bg-transparent text-pencil border-dashed hover:bg-erased shadow-none hover:shadow-none",
+        "bg-transparent text-pencil border-dashed hover:bg-erased shadow-none hover:shadow-none font-bold",
+      marker:
+        "bg-marker text-white shadow-hard-md hover:bg-pencil hover:text-white hover:shadow-hard-sm hover:translate-x-[2px] hover:translate-y-[2px]",
+      ballpoint:
+        "bg-ballpoint text-white shadow-hard-md hover:bg-pencil hover:text-white hover:shadow-hard-sm hover:translate-x-[2px] hover:translate-y-[2px]",
     };
 
     const sizes = {
@@ -32,10 +36,17 @@ export const WobblyButton = forwardRef<any, WobblyButtonProps>(
       lg: "px-8 py-3 text-lg min-h-[52px] md:min-h-[56px]",
     };
 
-    const variantKey = (variant || "primary") as "primary" | "secondary" | "ghost";
-    const sizeKey = (size || "md") as "sm" | "md" | "lg";
+    const variantKey = (variant || "primary") as keyof typeof variants;
+    const sizeKey = (size || "md") as keyof typeof sizes;
 
-    const combinedClasses = `${baseClasses} ${variants[variantKey]} ${sizes[sizeKey]} ${className}`;
+    let variantClasses = variants[variantKey] || variants.primary;
+
+    // If custom background class is provided in className (e.g. bg-marker, bg-ballpoint), strip default bg-white & text-pencil
+    if (className.includes("bg-") && variant === "primary") {
+      variantClasses = "shadow-hard-md hover:shadow-hard-sm hover:translate-x-[2px] hover:translate-y-[2px]";
+    }
+
+    const combinedClasses = `${baseClasses} ${variantClasses} ${sizes[sizeKey]} ${className}`;
 
     if (href) {
       // Check if external link

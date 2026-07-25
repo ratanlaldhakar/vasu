@@ -293,7 +293,7 @@ Order ID: ${razorpay_order_id}`);
               tempPassword: generatedPassword,
               packageName,
               price,
-              website: "https://vasu.design" // fallback production domain
+              website: "https://vasuu.bond" // fallback production domain
             })
           );
         } else {
@@ -307,7 +307,7 @@ Order ID: ${razorpay_order_id}`);
               packageName: packageName,
               price: price,
               date: formattedDate,
-              website: "https://vasu.design",
+              website: "https://vasuu.bond",
               paymentId: razorpay_payment_id,
             })
           );

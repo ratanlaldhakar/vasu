@@ -27,14 +27,14 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://vasu.design"),
+  metadataBase: new URL("https://vasuu.bond"),
   title: {
     default: "Vasu — Web Developer & UI/UX Designer Portfolio",
     template: "%s | Vasu Portfolio"
   },
   description: "Explore Vasu's (Vasudev Dhakar) creative design and development portfolio. Specializing in high-performance Next.js websites, React apps, and premium hand-drawn UI/UX styles in Bhilwara, Rajasthan, India.",
   keywords: ["portfolio", "design", "UI kits", "templates", "graphics", "Vasu", "Bhilwara", "Rajasthan", "Web Developer"],
-  authors: [{ name: "Vasudev Dhakar", url: "https://vasu.design" }],
+  authors: [{ name: "Vasudev Dhakar", url: "https://vasuu.bond" }],
   creator: "Vasudev Dhakar",
   publisher: "Vasudev Dhakar",
   applicationName: "Vasu Portfolio",
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Vasu — Web Developer & UI/UX Designer Portfolio",
     description: "Explore Vasu's creative design and portfolio. Specializing in high-performance Next.js websites and premium UI/UX styles.",
-    url: "https://vasu.design",
+    url: "https://vasuu.bond",
     siteName: "Vasu Portfolio",
     locale: "en_IN",
     type: "website",
@@ -72,6 +72,8 @@ export const metadata: Metadata = {
 };
 
 import { AuthProvider } from "@/context/AuthContext";
+import { NotificationPrompt } from "@/components/ui/NotificationPrompt";
+import { NotificationListener } from "@/components/ui/NotificationListener";
 
 export default function RootLayout({
   children,
@@ -86,6 +88,8 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <AuthProvider>
+          <NotificationPrompt />
+          <NotificationListener />
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />

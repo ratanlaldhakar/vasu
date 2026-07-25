@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { WobblyCard } from "@/components/ui/WobblyCard";
 import { WobblyButton } from "@/components/ui/WobblyButton";
-import { Briefcase, Bell, User, ArrowRight, Star, AlertCircle, FileText } from "lucide-react";
+import { Briefcase, Bell, ArrowRight, AlertCircle, CreditCard, Receipt, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
 interface Project {
@@ -28,6 +28,16 @@ interface Booking {
   estimated_delivery: string;
 }
 
+interface PaymentRecord {
+  id: string;
+  amount: number;
+  payment_id: string;
+  order_id: string;
+  status: string;
+  created_at: string;
+  plan_name?: string;
+}
+
 interface Notification {
   id: string;
   title: string;
@@ -36,13 +46,30 @@ interface Notification {
   created_at: string;
 }
 
+const loadRazorpayScript = () => {
+  return new Promise<boolean>((resolve) => {
+    if (typeof window !== "undefined" && (window as any).Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 export default function DashboardHome() {
   const { user, profile } = useAuth();
   
   const [projects, setProjects] = useState<Project[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [payingId, setPayingId] = useState<string | null>(null);
 
   const fetchDashboardData = async () => {
     if (!supabase || !user) return;
@@ -65,7 +92,35 @@ export default function DashboardHome() {
 
       if (bookData) setBookings(bookData);
 
-      // 3. Fetch Notifications
+      // 3. Fetch Payments
+      const { data: payData } = await supabase
+        .from("payments")
+        .select(`
+          id,
+          amount,
+          payment_id,
+          order_id,
+          status,
+          created_at,
+          bookings ( plan_name )
+        `)
+        .eq("client_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (payData) {
+        const formatted = (payData as any[]).map(pay => ({
+          id: pay.id,
+          amount: pay.amount,
+          payment_id: pay.payment_id,
+          order_id: pay.order_id,
+          status: pay.status,
+          created_at: pay.created_at,
+          plan_name: pay.bookings?.plan_name || "Development Service"
+        }));
+        setPayments(formatted);
+      }
+
+      // 4. Fetch Notifications
       const { data: notifData } = await supabase
         .from("notifications")
         .select("*")
@@ -86,6 +141,73 @@ export default function DashboardHome() {
       fetchDashboardData();
     }
   }, [user]);
+
+  const handleDirectPay = async (pay: PaymentRecord) => {
+    if (!supabase || !user) return;
+    setPayingId(pay.id);
+    try {
+      const loaded = await loadRazorpayScript();
+      if (!loaded) throw new Error("Failed to load Razorpay Gateway.");
+
+      const res = await fetch("/api/payment/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: pay.amount,
+          packageName: pay.plan_name || "Service Charge"
+        })
+      });
+
+      if (!res.ok) throw new Error("Could not create Razorpay order.");
+      const orderData = await res.json();
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_SyoANIIxpmdHxD",
+        amount: orderData.amount,
+        currency: "INR",
+        name: "Vasuu Design Studio",
+        description: `Payment for ${pay.plan_name}`,
+        order_id: orderData.id,
+        handler: async function (response: any) {
+          try {
+            if (supabase) {
+              await supabase
+                .from("payments")
+                .update({
+                  status: "success",
+                  payment_id: response.razorpay_payment_id,
+                  order_id: response.razorpay_order_id
+                })
+                .eq("id", pay.id);
+
+              await supabase
+                .from("bookings")
+                .update({ payment_status: "Paid" })
+                .eq("client_id", user.id);
+            }
+            alert(`🎉 Payment of ₹${pay.amount?.toLocaleString("en-IN")} completed successfully!`);
+            fetchDashboardData();
+          } catch (err) {
+            console.error("Payment update error:", err);
+          } finally {
+            setPayingId(null);
+          }
+        },
+        prefill: {
+          name: user.user_metadata?.name || user.email,
+          email: user.email
+        },
+        theme: { color: "#2d5da1" }
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err: any) {
+      alert("Payment Launch Error: " + err.message);
+    } finally {
+      setPayingId(null);
+    }
+  };
 
   const markNotificationRead = async (id: string) => {
     if (!supabase) return;
@@ -281,30 +403,64 @@ export default function DashboardHome() {
             </WobblyCard>
           </div>
 
-          {/* Profile Summary Card */}
+          {/* Invoices & Billing Summary Widget */}
           <div className="space-y-4">
             <h2 className="text-2xl font-bold text-pencil font-[family-name:var(--font-kalam-var)] flex items-center gap-2">
-              <User className="w-5 h-5 text-marker" />
-              Portal Account
+              <CreditCard className="w-5 h-5 text-marker" />
+              Invoices & Billing Center
             </h2>
 
             <WobblyCard
               variant="default"
               hover={false}
-              className="border-3 border-pencil shadow-hard-md bg-white p-5 space-y-3 text-sm"
+              className="border-3 border-pencil shadow-hard-md bg-white p-5 space-y-4 text-sm"
             >
-              <div className="border-b-2 border-dashed border-pencil/20 pb-3">
-                <div className="text-xs text-pencil-lightest font-bold">Email Address</div>
-                <div className="font-bold text-pencil truncate font-[family-name:var(--font-patrick-var)] text-base">{profile?.email}</div>
-              </div>
-              <div className="border-b-2 border-dashed border-pencil/20 pb-3">
-                <div className="text-xs text-pencil-lightest font-bold">Phone Contact</div>
-                <div className="font-bold text-pencil font-[family-name:var(--font-patrick-var)] text-base">{profile?.phone || "Not provided"}</div>
-              </div>
-              <div>
-                <div className="text-xs text-pencil-lightest font-bold">Business Name</div>
-                <div className="font-bold text-pencil font-[family-name:var(--font-patrick-var)] text-base">{profile?.business_name || "Not provided"}</div>
-              </div>
+              {(() => {
+                const pendingPay = payments.find(p => p.status?.toLowerCase() === "pending");
+                if (pendingPay) {
+                  return (
+                    <div className="p-4 bg-amber-50 border-2 border-amber-300 wobbly-sm space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-amber-900 font-[family-name:var(--font-kalam-var)] text-base">
+                          ⚠️ Pending Invoice
+                        </span>
+                        <span className="text-sm font-bold text-marker font-mono">
+                          ₹{pendingPay.amount?.toLocaleString("en-IN")}
+                        </span>
+                      </div>
+                      <p className="text-xs text-amber-800 font-[family-name:var(--font-patrick-var)] font-bold">
+                        Unpaid charge for <strong className="text-pencil">{pendingPay.plan_name}</strong>.
+                      </p>
+                      <WobblyButton
+                        size="sm"
+                        variant="marker"
+                        onClick={() => handleDirectPay(pendingPay)}
+                        disabled={payingId === pendingPay.id}
+                        className="w-full"
+                      >
+                        <CreditCard className="w-4 h-4 mr-1.5" />
+                        {payingId === pendingPay.id ? "Opening..." : `Pay ₹${pendingPay.amount?.toLocaleString("en-IN")} Online Now`}
+                      </WobblyButton>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-ballpoint font-bold font-[family-name:var(--font-kalam-var)] text-base">
+                      <ShieldCheck className="w-5 h-5" />
+                      All Invoices Paid (Cleared)
+                    </div>
+                    <p className="text-xs text-pencil-light font-[family-name:var(--font-patrick-var)] font-bold">
+                      You have 0 pending invoices. You can inspect your transaction ledger and print tax receipts anytime.
+                    </p>
+                    <WobblyButton size="sm" variant="ghost" href="/dashboard/bookings" className="w-full">
+                      <Receipt className="w-4 h-4 mr-1.5" />
+                      View Invoices & Receipts →
+                    </WobblyButton>
+                  </div>
+                );
+              })()}
             </WobblyCard>
           </div>
 

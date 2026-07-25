@@ -84,11 +84,12 @@ CREATE TABLE IF NOT EXISTS public.projects (
 
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow clients to read own projects" ON public.projects
-    FOR SELECT TO authenticated USING (auth.uid() = client_id);
-
-CREATE POLICY "Allow all access to admin (service_role)" ON public.projects
-    FOR ALL TO service_role USING (true);
+DROP POLICY IF EXISTS "Allow clients to read own projects" ON public.projects;
+DROP POLICY IF EXISTS "Allow all access to admin (service_role)" ON public.projects;
+CREATE POLICY "Allow all access to projects for authenticated" ON public.projects
+    FOR ALL TO authenticated 
+    USING (auth.uid() = client_id OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true))
+    WITH CHECK (auth.uid() = client_id OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true));
 
 
 -- 3. Create Bookings Table
@@ -105,11 +106,12 @@ CREATE TABLE IF NOT EXISTS public.bookings (
 
 ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow clients to view own bookings" ON public.bookings
-    FOR SELECT TO authenticated USING (auth.uid() = client_id);
-
-CREATE POLICY "Allow all access to admin on bookings" ON public.bookings
-    FOR ALL TO service_role USING (true);
+DROP POLICY IF EXISTS "Allow clients to view own bookings" ON public.bookings;
+DROP POLICY IF EXISTS "Allow all access to admin on bookings" ON public.bookings;
+CREATE POLICY "Allow all access to bookings for authenticated" ON public.bookings
+    FOR ALL TO authenticated 
+    USING (auth.uid() = client_id OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true))
+    WITH CHECK (auth.uid() = client_id OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true));
 
 
 -- 4. Create Payments Table
@@ -128,11 +130,12 @@ CREATE TABLE IF NOT EXISTS public.payments (
 
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow clients to view own payments" ON public.payments
-    FOR SELECT TO authenticated USING (auth.uid() = client_id);
-
-CREATE POLICY "Allow all access to admin on payments" ON public.payments
-    FOR ALL TO service_role USING (true);
+DROP POLICY IF EXISTS "Allow clients to view own payments" ON public.payments;
+DROP POLICY IF EXISTS "Allow all access to admin on payments" ON public.payments;
+CREATE POLICY "Allow all access to payments for authenticated" ON public.payments
+    FOR ALL TO authenticated 
+    USING (auth.uid() = client_id OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true))
+    WITH CHECK (auth.uid() = client_id OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true));
 
 
 -- 5. Create Messages Table
@@ -147,14 +150,13 @@ CREATE TABLE IF NOT EXISTS public.messages (
 
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow clients to view own messages" ON public.messages
-    FOR SELECT TO authenticated USING (auth.uid() = client_id);
-
-CREATE POLICY "Allow clients to send messages" ON public.messages
-    FOR INSERT TO authenticated WITH CHECK (auth.uid() = client_id);
-
-CREATE POLICY "Allow all access to admin on messages" ON public.messages
-    FOR ALL TO service_role USING (true);
+DROP POLICY IF EXISTS "Allow clients to view own messages" ON public.messages;
+DROP POLICY IF EXISTS "Allow clients to send messages" ON public.messages;
+DROP POLICY IF EXISTS "Allow all access to admin on messages" ON public.messages;
+CREATE POLICY "Allow all access to messages for authenticated" ON public.messages
+    FOR ALL TO authenticated 
+    USING (auth.uid() = client_id OR auth.uid() = sender_id OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true))
+    WITH CHECK (auth.uid() = client_id OR auth.uid() = sender_id OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true));
 
 
 -- 6. Create Notifications Table
@@ -169,14 +171,13 @@ CREATE TABLE IF NOT EXISTS public.notifications (
 
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow clients to view own notifications" ON public.notifications
-    FOR SELECT TO authenticated USING (auth.uid() = client_id);
-
-CREATE POLICY "Allow clients to update read status" ON public.notifications
-    FOR UPDATE TO authenticated USING (auth.uid() = client_id);
-
-CREATE POLICY "Allow all access to admin on notifications" ON public.notifications
-    FOR ALL TO service_role USING (true);
+DROP POLICY IF EXISTS "Allow clients to view own notifications" ON public.notifications;
+DROP POLICY IF EXISTS "Allow clients to update read status" ON public.notifications;
+DROP POLICY IF EXISTS "Allow all access to admin on notifications" ON public.notifications;
+CREATE POLICY "Allow all access to notifications for authenticated" ON public.notifications
+    FOR ALL TO authenticated 
+    USING (auth.uid() = client_id OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true))
+    WITH CHECK (auth.uid() = client_id OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true));
 
 
 -- 7. Create Files Table
@@ -193,11 +194,12 @@ CREATE TABLE IF NOT EXISTS public.files (
 
 ALTER TABLE public.files ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow clients to view own files" ON public.files
-    FOR SELECT TO authenticated USING (auth.uid() = client_id);
-
-CREATE POLICY "Allow all access to admin on files" ON public.files
-    FOR ALL TO service_role USING (true);
+DROP POLICY IF EXISTS "Allow clients to view own files" ON public.files;
+DROP POLICY IF EXISTS "Allow all access to admin on files" ON public.files;
+CREATE POLICY "Allow all access to files for authenticated" ON public.files
+    FOR ALL TO authenticated 
+    USING (auth.uid() = client_id OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true))
+    WITH CHECK (auth.uid() = client_id OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true));
 
 
 -- 8. Create Activity Logs Table
@@ -210,11 +212,31 @@ CREATE TABLE IF NOT EXISTS public.activity_logs (
 
 ALTER TABLE public.activity_logs ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow clients to view own log" ON public.activity_logs
-    FOR SELECT TO authenticated USING (auth.uid() = client_id);
+DROP POLICY IF EXISTS "Allow clients to view own log" ON public.activity_logs;
+DROP POLICY IF EXISTS "Allow clients to insert activity" ON public.activity_logs;
+DROP POLICY IF EXISTS "Allow all access to admin on activity" ON public.activity_logs;
+CREATE POLICY "Allow all access to activity_logs for authenticated" ON public.activity_logs
+    FOR ALL TO authenticated 
+    USING (auth.uid() = client_id OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true))
+    WITH CHECK (auth.uid() = client_id OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true));
 
-CREATE POLICY "Allow clients to insert activity" ON public.activity_logs
-    FOR INSERT TO authenticated WITH CHECK (auth.uid() = client_id);
 
-CREATE POLICY "Allow all access to admin on activity" ON public.activity_logs
-    FOR ALL TO service_role USING (true);
+-- 9. Setup Supabase Storage Bucket for File Cabinet Deliverables
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('deliverables', 'deliverables', true)
+ON CONFLICT (id) DO NOTHING;
+
+DROP POLICY IF EXISTS "Allow public read access to deliverables" ON storage.objects;
+DROP POLICY IF EXISTS "Allow authenticated users to upload deliverables" ON storage.objects;
+DROP POLICY IF EXISTS "Allow authenticated users to delete deliverables" ON storage.objects;
+
+CREATE POLICY "Allow public read access to deliverables" ON storage.objects
+    FOR SELECT TO public USING (bucket_id = 'deliverables');
+
+CREATE POLICY "Allow authenticated users to upload deliverables" ON storage.objects
+    FOR INSERT TO authenticated WITH CHECK (bucket_id = 'deliverables');
+
+CREATE POLICY "Allow authenticated users to delete deliverables" ON storage.objects
+    FOR DELETE TO authenticated USING (bucket_id = 'deliverables');
+
+

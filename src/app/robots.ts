@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: '/api/',
     },
-    sitemap: 'https://vasu.design/sitemap.xml',
+    sitemap: 'https://vasuu.bond/sitemap.xml',
   };
 }

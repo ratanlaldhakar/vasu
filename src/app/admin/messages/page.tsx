@@ -114,6 +114,16 @@ export default function AdminMessagesPage() {
 
       if (error) throw error;
 
+      // Log notification entry for client
+      await supabase
+        .from("notifications")
+        .insert({
+          client_id: activeClientId,
+          title: "💬 New Message from Vasuu Studio",
+          content: newMessage.trim().substring(0, 120),
+          is_read: false
+        });
+
       setMessages(prev => [...prev, sentMsg]);
       setNewMessage("");
     } catch (err: any) {

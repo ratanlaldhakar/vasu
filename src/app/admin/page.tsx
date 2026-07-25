@@ -184,7 +184,7 @@ export default function AdminDashboardHome() {
                 variant="default"
                 hover={true}
                 rotation={idx % 2 === 0 ? -0.3 : 0.3}
-                className="border-3 border-pencil bg-white p-5 flex flex-col justify-between h-56 relative"
+                className="border-3 border-pencil bg-white p-5 flex flex-col justify-between min-h-44 h-auto relative"
               >
                 <div className="space-y-2">
                   <div className="flex justify-between items-start">

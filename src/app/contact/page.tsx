@@ -15,12 +15,12 @@ export const metadata: Metadata = {
     "Website Development Quote Bhilwara"
   ],
   alternates: {
-    canonical: "https://vasu.design/contact",
+    canonical: "https://vasuu.bond/contact",
   },
   openGraph: {
     title: "Contact Vasu — Hire Freelance Web Developer in Bhilwara",
     description: "Get in touch with Vasu for freelance web design and development inquiries in Bhilwara, Rajasthan.",
-    url: "https://vasu.design/contact",
+    url: "https://vasuu.bond/contact",
     siteName: "Vasu Portfolio",
     locale: "en_IN",
     type: "website",
@@ -49,13 +49,13 @@ export default function ContactPage() {
         '@type': 'ListItem',
         'position': 1,
         'name': 'Home',
-        'item': 'https://vasu.design'
+        'item': 'https://vasuu.bond'
       },
       {
         '@type': 'ListItem',
         'position': 2,
         'name': 'Contact',
-        'item': 'https://vasu.design/contact'
+        'item': 'https://vasuu.bond/contact'
       }
     ]
   };

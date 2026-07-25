@@ -15,12 +15,12 @@ export const metadata: Metadata = {
     'Designer Vasu'
   ],
   alternates: {
-    canonical: 'https://vasu.design/about',
+    canonical: 'https://vasuu.bond/about',
   },
   openGraph: {
     title: 'About Vasu — Designer & Web Developer in Bhilwara',
     description: 'Learn about Vasudev Dhakar (Vasu), a freelance designer and full-stack web developer in Rajasthan.',
-    url: 'https://vasu.design/about',
+    url: 'https://vasuu.bond/about',
     siteName: 'Vasu Portfolio',
     locale: 'en_IN',
     type: 'profile',
@@ -42,13 +42,13 @@ export default function AboutPage() {
         '@type': 'ListItem',
         'position': 1,
         'name': 'Home',
-        'item': 'https://vasu.design'
+        'item': 'https://vasuu.bond'
       },
       {
         '@type': 'ListItem',
         'position': 2,
         'name': 'About',
-        'item': 'https://vasu.design/about'
+        'item': 'https://vasuu.bond/about'
       }
     ]
   };

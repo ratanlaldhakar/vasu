@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { getProjects } from '@/lib/db';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://vasu.design';
+  const baseUrl = 'https://vasuu.bond';
 
   // Base routes configuration
   const routes = ['', '/about', '/contact', '/portfolio'].map((route) => ({
