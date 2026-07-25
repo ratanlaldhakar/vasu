@@ -5,19 +5,27 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X, Palette, Mail } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-const navLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/portfolio', label: 'Portfolio' },
-  { href: '/#pricing', label: 'Pricing' },
-  { href: '/about', label: 'About' },
-  { href: '/contact', label: 'Contact' },
-];
+import { useAuth } from '@/context/AuthContext';
 
 export function Header() {
+  const { user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+
+  const isDashboard = pathname?.startsWith('/dashboard') || pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/reset-password';
+  if (isDashboard) return null;
+
+  const links = [
+    { href: '/', label: 'Home' },
+    { href: '/portfolio', label: 'Portfolio' },
+    { href: '/#pricing', label: 'Pricing' },
+    { href: '/about', label: 'About' },
+    { href: '/contact', label: 'Contact' },
+    user 
+      ? { href: '/dashboard', label: 'Dashboard' } 
+      : { href: '/login', label: 'Login' }
+  ];
 
   useEffect(() => {
     if (mobileOpen) {
@@ -78,9 +86,8 @@ export function Header() {
             </span>
           </Link>
 
-          {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => {
+            {links.map((link) => {
               const isActive = !link.href.startsWith('/#') && pathname === link.href;
               return (
                 <Link
@@ -138,7 +145,7 @@ export function Header() {
             className="md:hidden border-t-3 border-pencil bg-paper overflow-hidden"
           >
             <div className="max-w-6xl mx-auto px-5 py-6 flex flex-col gap-3">
-              {navLinks.map((link) => (
+              {links.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}

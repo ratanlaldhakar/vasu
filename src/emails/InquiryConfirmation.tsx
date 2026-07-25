@@ -23,6 +23,7 @@ interface InquiryConfirmationProps {
   price?: string;
   date?: string;
   website?: string;
+  paymentId?: string;
 }
 
 export default function InquiryConfirmation({
@@ -32,7 +33,8 @@ export default function InquiryConfirmation({
   packageName = "{{package}}",
   price = "{{price}}",
   date = "{{date}}",
-  website = "{{website}}"
+  website = "{{website}}",
+  paymentId
 }: InquiryConfirmationProps) {
   return (
     <Html>
@@ -46,7 +48,7 @@ export default function InquiryConfirmation({
           `}
         </style>
       </Head>
-      <Preview>Project inquiry received successfully!</Preview>
+      <Preview>{paymentId ? "Project payment received successfully!" : "Project inquiry received successfully!"}</Preview>
       <Body style={main}>
         <Container style={container}>
           {/* Header */}
@@ -55,14 +57,16 @@ export default function InquiryConfirmation({
               VASU
             </div>
             <Hr style={gradientDivider} />
-            <span style={badge}>Project Inquiry Received</span>
+            <span style={badge}>{paymentId ? "Payment Received" : "Project Inquiry Received"}</span>
           </Section>
 
           {/* Hero Section */}
           <Section style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <Heading style={heroTitle}>Thank you, {name} 👋</Heading>
+            <Heading style={heroTitle}>{paymentId ? `Thank you for your payment, ${name} 👋` : `Thank you, ${name} 👋`}</Heading>
             <Text style={heroSubtitle}>
-              We&apos;ve successfully received your project inquiry. Our team is already reviewing your request.
+              {paymentId
+                ? "We've successfully processed your payment. Our team will contact you shortly to begin the project."
+                : "We've successfully received your project inquiry. Our team is already reviewing your request."}
             </Text>
           </Section>
 
@@ -74,8 +78,8 @@ export default function InquiryConfirmation({
                   <div style={successIcon}>✓</div>
                 </td>
                 <td valign="top" style={{ paddingLeft: '12px' }}>
-                  <h3 style={successTitle}>Inquiry Received Successfully</h3>
-                  <p style={successDesc}>Everything has been submitted correctly.</p>
+                  <h3 style={successTitle}>{paymentId ? "Payment Received Successfully" : "Inquiry Received Successfully"}</h3>
+                  <p style={successDesc}>{paymentId ? `Transaction ID: ${paymentId}` : "Everything has been submitted correctly."}</p>
                 </td>
               </tr>
             </table>
@@ -93,7 +97,7 @@ export default function InquiryConfirmation({
                   <div style={{ ...valueText, color: '#6C63FF' }}>{packageName}</div>
                 </td>
                 <td width="50%" style={{ paddingBottom: '16px' }}>
-                  <div style={label}>Estimated Price</div>
+                  <div style={label}>{paymentId ? "Paid Amount" : "Estimated Price"}</div>
                   <div style={{ ...valueText, fontSize: '18px', color: '#22C55E' }}>{price}</div>
                 </td>
               </tr>
@@ -103,6 +107,14 @@ export default function InquiryConfirmation({
                   <div style={valueText}>{date}</div>
                 </td>
               </tr>
+              {paymentId && (
+                <tr>
+                  <td colSpan={2} style={{ paddingTop: '16px' }}>
+                    <div style={label}>💳 Razorpay Payment ID</div>
+                    <div style={{ ...valueText, color: '#22C55E' }}>{paymentId}</div>
+                  </td>
+                </tr>
+              )}
             </table>
           </Section>
 

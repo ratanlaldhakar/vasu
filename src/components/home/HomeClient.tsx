@@ -13,6 +13,21 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { mockProjects, pricingPlans } from '@/lib/data';
 import { ContactForm } from '@/components/contact/ContactForm';
 
+const loadRazorpayScript = () => {
+  return new Promise<boolean>((resolve) => {
+    if (typeof window !== "undefined" && (window as any).Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 export default function HomeClient() {
   const featuredProjects = mockProjects.slice(0, 3);
 
@@ -21,6 +36,11 @@ export default function HomeClient() {
   const [activePlan, setActivePlan] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [submittingStatus, setSubmittingStatus] = useState<string>("");
+  const [showPaymentSuccessModal, setShowPaymentSuccessModal] = useState(false);
+  const [paymentSuccessId, setPaymentSuccessId] = useState("");
+  const [showPaymentFailedModal, setShowPaymentFailedModal] = useState(false);
+  const [paymentErrorMsg, setPaymentErrorMsg] = useState("");
   const [isMobile, setIsMobile] = useState(false);
   const [activePlanIdx, setActivePlanIdx] = useState(1);
   const [expandedPlans, setExpandedPlans] = useState<Record<string, boolean>>({});
@@ -1019,64 +1039,184 @@ export default function HomeClient() {
 
                 <form onSubmit={async (e) => {
                   e.preventDefault();
-                  setSubmitting(true);
+                  
                   const name = (document.getElementById("popup-name") as HTMLInputElement)?.value || "";
                   const email = (document.getElementById("popup-email") as HTMLInputElement)?.value || "";
                   const phone = (document.getElementById("popup-phone") as HTMLInputElement)?.value || "";
                   const brand = (document.getElementById("popup-brand") as HTMLInputElement)?.value || "";
                   const details = (document.getElementById("popup-details") as HTMLTextAreaElement)?.value || "";
 
-                  let message = "";
-                  const brandLine = brand ? `Business/Brand: ${brand}\n` : "";
+                  if (!name || !email || !phone) {
+                    alert("Please fill in all required fields.");
+                    return;
+                  }
+
+                  setSubmitting(true);
 
                   if (isCustom) {
+                    setSubmittingStatus("Sending...");
+                    const brandLine = brand ? `Business/Brand: ${brand}\n` : "";
                     const projectType = (document.getElementById("popup-type") as HTMLSelectElement)?.value || "";
                     const budget = (document.getElementById("popup-budget") as HTMLInputElement)?.value || "";
                     const timeline = (document.getElementById("popup-timeline") as HTMLSelectElement)?.value || "";
                     const budgetLine = budget ? `Estimated Budget: ${budget}\n` : "";
                     const detailsLine = details ? `Project Details:\n${details}` : "";
 
-                    message = `Hello Vasu,\n\nI want to build a custom project with you.\n\nPackage: ${activePlan.name}\nProject Type: ${projectType}\nTimeline: ${timeline}\n${brandLine}${budgetLine}${detailsLine}`;
-                  } else {
-                    const detailsLine = details ? `Project Details:\n${details}` : "";
-                    message = `Hello Vasu,\n\nI want to build a project with you.\n\nPackage: ${activePlan.name}\nPrice: ${activePlan.price}\n${brandLine}${detailsLine}`;
-                  }
+                    const message = `Hello Vasu,\n\nI want to build a custom project with you.\n\nPackage: ${activePlan.name}\nProject Type: ${projectType}\nTimeline: ${timeline}\n${brandLine}${budgetLine}${detailsLine}`;
 
-                  try {
-                    const projectType = isCustom ? (document.getElementById("popup-type") as HTMLSelectElement)?.value || "" : "";
-                    const timeline = isCustom ? (document.getElementById("popup-timeline") as HTMLSelectElement)?.value || "" : "";
-                    const budget = isCustom ? (document.getElementById("popup-budget") as HTMLInputElement)?.value || "" : "";
-
-                    const res = await fetch("/api/contact", {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify({
-                        name,
-                        email,
-                        phone,
-                        message,
-                        packageName: activePlan.name,
-                        price: activePlan.price,
-                        brand,
-                        details,
-                        projectType,
-                        timeline,
-                        budget
-                      }),
-                    });
-                    if (res.ok) {
-                      setActivePlan(null);
-                      setShowSuccessModal(true);
-                    } else {
-                      alert("Failed to send inquiry. Please try again.");
+                    try {
+                      const res = await fetch("/api/contact", {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                          name,
+                          email,
+                          phone,
+                          message,
+                          packageName: activePlan.name,
+                          price: activePlan.price,
+                          brand,
+                          details,
+                          projectType,
+                          timeline,
+                          budget
+                        }),
+                      });
+                      if (res.ok) {
+                        setActivePlan(null);
+                        setShowSuccessModal(true);
+                      } else {
+                        alert("Failed to send inquiry. Please try again.");
+                      }
+                    } catch (err) {
+                      console.error(err);
+                      alert("An error occurred. Please try again.");
+                    } finally {
+                      setSubmitting(false);
+                      setSubmittingStatus("");
                     }
-                  } catch (err) {
-                    console.error(err);
-                    alert("An error occurred. Please try again.");
-                  } finally {
-                    setSubmitting(false);
+                  } else {
+                    // Paid booking using Razorpay
+                    try {
+                      setSubmittingStatus("Creating Payment...");
+                      
+                      // 1. Create order on backend
+                      const orderRes = await fetch("/api/payment/create-order", {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                          planName: activePlan.name,
+                        }),
+                      });
+
+                      if (!orderRes.ok) {
+                        const errBody = await orderRes.json();
+                        throw new Error(errBody.error || "Failed to create order on server");
+                      }
+
+                      const orderData = await orderRes.json();
+                      const { orderId, amount, currency, keyId } = orderData;
+
+                      setSubmittingStatus("Opening Razorpay...");
+
+                      // 2. Load script dynamically
+                      const loaded = await loadRazorpayScript();
+                      if (!loaded) {
+                        throw new Error("Failed to load Razorpay Payment SDK. Check your internet connection.");
+                      }
+
+                      // 3. Launch Razorpay Checkout popup
+                      const options = {
+                        key: keyId,
+                        amount: amount,
+                        currency: currency,
+                        name: "Vasu Design",
+                        description: `Website Development - ${activePlan.name} Plan`,
+                        image: "/icon.png",
+                        order_id: orderId,
+                        handler: async function (response: any) {
+                          try {
+                            setSubmittingStatus("Processing...");
+                            
+                            // 4. Verify payment on server
+                            const verifyRes = await fetch("/api/payment/verify", {
+                              method: "POST",
+                              headers: {
+                                "Content-Type": "application/json",
+                              },
+                              body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                name,
+                                email,
+                                phone,
+                                brand,
+                                details,
+                                packageName: activePlan.name,
+                                price: activePlan.price,
+                              }),
+                            });
+
+                            if (!verifyRes.ok) {
+                              const verifyErr = await verifyRes.json();
+                              throw new Error(verifyErr.error || "Payment verification failed");
+                            }
+
+                            const verifyData = await verifyRes.json();
+                            
+                            // Clear state and show Success modal
+                            setActivePlan(null);
+                            setPaymentSuccessId(verifyData.paymentId || response.razorpay_payment_id);
+                            setShowPaymentSuccessModal(true);
+                          } catch (err: any) {
+                            console.error("Verification error:", err);
+                            setPaymentErrorMsg(err.message || "Could not verify payment signature.");
+                            setShowPaymentFailedModal(true);
+                          } finally {
+                            setSubmitting(false);
+                            setSubmittingStatus("");
+                          }
+                        },
+                        prefill: {
+                          name: name,
+                          email: email,
+                          contact: phone,
+                        },
+                        theme: {
+                          color: "#ff4d4d", // primary accent marker color
+                        },
+                        modal: {
+                          ondismiss: function () {
+                            setSubmitting(false);
+                            setSubmittingStatus("");
+                            console.log("Payment checkout popup closed by user");
+                          },
+                        },
+                      };
+
+                      const rzp = new (window as any).Razorpay(options);
+                      
+                      rzp.on("payment.failed", function (resp: any) {
+                        console.error("Payment failed event:", resp.error);
+                        setPaymentErrorMsg(resp.error?.description || "Payment failed. Try again.");
+                        setShowPaymentFailedModal(true);
+                        setSubmitting(false);
+                        setSubmittingStatus("");
+                      });
+
+                      rzp.open();
+                    } catch (err: any) {
+                      console.error("Checkout process error:", err);
+                      setPaymentErrorMsg(err.message || "An error occurred starting checkout.");
+                      setShowPaymentFailedModal(true);
+                      setSubmitting(false);
+                      setSubmittingStatus("");
+                    }
                   }
                 }} className="space-y-4">
                   {/* Selected Package Details */}
@@ -1196,8 +1336,8 @@ export default function HomeClient() {
                     >
                       Cancel
                     </WobblyButton>
-                    <WobblyButton type="submit" disabled={submitting}>
-                      {submitting ? "Sending..." : "Continue →"}
+                     <WobblyButton type="submit" disabled={submitting}>
+                      {submitting ? (submittingStatus || "Sending...") : "Continue →"}
                     </WobblyButton>
                   </div>
                 </form>
@@ -1254,6 +1394,134 @@ export default function HomeClient() {
               <WobblyButton onClick={() => setShowSuccessModal(false)} className="w-full">
                 Close
               </WobblyButton>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ===== PAYMENT SUCCESS MODAL ===== */}
+      <AnimatePresence>
+        {showPaymentSuccessModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setShowPaymentSuccessModal(false)}
+              className="absolute inset-0 bg-pencil/40 cursor-zoom-out"
+            />
+
+            {/* Modal Box */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="relative w-full max-w-md bg-paper bg-[radial-gradient(#e5e0d8_1.5px,transparent_1.5px)] bg-[size:24px_24px] border-3 border-pencil shadow-hard-lg p-8 text-center wobbly z-10 tape"
+            >
+              {/* Close Button */}
+              <button 
+                type="button"
+                onClick={() => setShowPaymentSuccessModal(false)}
+                className="absolute top-4 right-4 w-8 h-8 wobbly border-2 border-pencil hover:bg-marker hover:text-white flex items-center justify-center font-bold text-pencil transition-colors duration-100"
+              >
+                ✕
+              </button>
+
+              <div className="w-16 h-16 mx-auto mb-4 wobbly border-3 border-pencil bg-marker/10 flex items-center justify-center">
+                <span className="text-2xl">🎉</span>
+              </div>
+
+              <h2 className="text-2xl md:text-3xl font-bold text-pencil mb-3 font-[family-name:var(--font-kalam-var)]">
+                Payment Successful!
+              </h2>
+
+              <p className="text-pencil-light text-lg mb-4 leading-relaxed">
+                Thank you for your order.<br />
+                I have received your booking and will contact you shortly.
+              </p>
+
+              <div className="p-3 border-2 border-dashed border-pencil/30 bg-white/60 wobbly-sm text-sm text-pencil mb-6 font-[family-name:var(--font-kalam-var)] font-bold">
+                Reference ID: <span className="text-marker">{paymentSuccessId}</span>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <WobblyButton onClick={() => setShowPaymentSuccessModal(false)} className="w-full">
+                  Back Home
+                </WobblyButton>
+                <WobblyButton 
+                  onClick={() => alert("Receipt download will be available soon in your email.")} 
+                  variant="ghost" 
+                  className="w-full"
+                >
+                  Download Receipt (Soon)
+                </WobblyButton>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ===== PAYMENT FAILED MODAL ===== */}
+      <AnimatePresence>
+        {showPaymentFailedModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setShowPaymentFailedModal(false)}
+              className="absolute inset-0 bg-pencil/40 cursor-zoom-out"
+            />
+
+            {/* Modal Box */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="relative w-full max-w-md bg-paper bg-[radial-gradient(#e5e0d8_1.5px,transparent_1.5px)] bg-[size:24px_24px] border-3 border-pencil shadow-hard-lg p-8 text-center wobbly z-10 tape"
+            >
+              {/* Close Button */}
+              <button 
+                type="button"
+                onClick={() => setShowPaymentFailedModal(false)}
+                className="absolute top-4 right-4 w-8 h-8 wobbly border-2 border-pencil hover:bg-marker hover:text-white flex items-center justify-center font-bold text-pencil transition-colors duration-100"
+              >
+                ✕
+              </button>
+
+              <div className="w-16 h-16 mx-auto mb-4 wobbly border-3 border-pencil bg-marker/10 flex items-center justify-center">
+                <span className="text-2xl text-marker">❌</span>
+              </div>
+
+              <h2 className="text-2xl md:text-3xl font-bold text-pencil mb-3 font-[family-name:var(--font-kalam-var)]">
+                Payment Failed
+              </h2>
+
+              <p className="text-pencil-light text-lg mb-6 leading-relaxed">
+                No amount deducted.<br />
+                Please try again.
+                {paymentErrorMsg && <span className="block mt-2 text-sm text-marker font-sans font-normal">Reason: {paymentErrorMsg}</span>}
+              </p>
+
+              <div className="flex flex-col gap-2">
+                <WobblyButton 
+                  onClick={() => {
+                    setShowPaymentFailedModal(false);
+                  }} 
+                  className="w-full"
+                >
+                  Retry Payment
+                </WobblyButton>
+                <WobblyButton onClick={() => setShowPaymentFailedModal(false)} variant="ghost" className="w-full">
+                  Close
+                </WobblyButton>
+              </div>
             </motion.div>
           </div>
         )}

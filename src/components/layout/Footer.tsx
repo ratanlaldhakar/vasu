@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Github, Twitter, Linkedin, Instagram, Heart, Mail } from 'lucide-react';
 
 const footerLinks = [
@@ -16,6 +19,11 @@ const socialLinks = [
 ];
 
 export function Footer() {
+  const pathname = usePathname();
+  const isDashboard = pathname?.startsWith('/dashboard') || pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/reset-password';
+  
+  if (isDashboard) return null;
+
   return (
     <footer className="border-t-3 border-pencil bg-paper mt-auto">
       {/* Mobile Footer (under 768px) */}

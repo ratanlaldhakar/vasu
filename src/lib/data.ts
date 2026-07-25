@@ -369,10 +369,12 @@ export interface PricingPlan {
   delivery?: string;
 }
 
+import { PLAN_PRICES } from "./plansConfig";
+
 export const pricingPlans: PricingPlan[] = [
   {
     name: "Starter",
-    price: "₹2,999",
+    price: `₹${PLAN_PRICES.starter.toLocaleString("en-IN")}`,
     description: "Perfect for students, freelancers and personal brands who need a professional online presence.",
     features: [
       "Single Landing Page",
@@ -393,7 +395,7 @@ export const pricingPlans: PricingPlan[] = [
   },
   {
     name: "Professional",
-    price: "₹5,999",
+    price: `₹${PLAN_PRICES.professional.toLocaleString("en-IN")}`,
     description: "Perfect for local businesses and startups.",
     features: [
       "Up to 5 Pages",
@@ -418,7 +420,7 @@ export const pricingPlans: PricingPlan[] = [
   },
   {
     name: "Business",
-    price: "₹9,999",
+    price: `₹${PLAN_PRICES.business.toLocaleString("en-IN")}`,
     description: "Perfect for businesses that want a stronger online presence.",
     features: [
       "Up to 10 Pages",

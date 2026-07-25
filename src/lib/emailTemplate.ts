@@ -10,7 +10,9 @@ export function getEmailHtml({
   budget = "",
   details = "",
   message = "",
-  time = ""
+  time = "",
+  paymentId = "",
+  orderId = ""
 }: {
   name: string;
   email: string;
@@ -24,6 +26,8 @@ export function getEmailHtml({
   details?: string;
   message?: string;
   time?: string;
+  paymentId?: string;
+  orderId?: string;
 }) {
   const displayDetails = details || message;
   const isCustom = packageName.toLowerCase() === "custom";
@@ -114,6 +118,26 @@ export function getEmailHtml({
               </table>
             </td>
           </tr>
+
+          ${paymentId ? `
+          <!-- Payment Info Box -->
+          <tr>
+            <td style="background-color: #121215; border: 1px solid #1f1f23; border-radius: 12px; padding: 20px; margin-bottom: 24px; display: block;">
+              <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td width="50%" valign="top" style="padding-right: 8px;">
+                    <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #8e8e93; margin-bottom: 4px;">Payment ID</div>
+                    <div style="font-size: 14px; font-weight: 600; color: #22c55e;">${paymentId}</div>
+                  </td>
+                  <td width="50%" valign="top" style="padding-left: 8px;">
+                    <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #8e8e93; margin-bottom: 4px;">Order ID</div>
+                    <div style="font-size: 14px; font-weight: 600; color: #ffffff;">${orderId}</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          ` : ''}
 
           ${isCustom ? `
           <!-- Custom Project Details Grid -->
