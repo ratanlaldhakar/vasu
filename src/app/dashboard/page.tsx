@@ -6,7 +6,21 @@ import { supabase } from "@/lib/supabase";
 import { WobblyCard } from "@/components/ui/WobblyCard";
 import { WobblyButton } from "@/components/ui/WobblyButton";
 import { PaymentSuccessModal, PaymentSuccessData } from "@/components/ui/PaymentSuccessModal";
-import { Briefcase, Bell, ArrowRight, AlertCircle, CreditCard, Receipt, ShieldCheck } from "lucide-react";
+import { 
+  Briefcase, 
+  Bell, 
+  ArrowRight, 
+  AlertCircle, 
+  CreditCard, 
+  Receipt, 
+  ShieldCheck, 
+  Sparkles,
+  MessageSquare,
+  FileText,
+  User,
+  Clock,
+  CheckCircle2
+} from "lucide-react";
 import Link from "next/link";
 
 interface Project {
@@ -232,7 +246,6 @@ export default function DashboardHome() {
         .update({ is_read: true })
         .eq("id", id);
       
-      // Update local state
       setNotifications(prev =>
         prev.map(n => n.id === id ? { ...n, is_read: true } : n)
       );
@@ -244,42 +257,91 @@ export default function DashboardHome() {
   if (loading) {
     return (
       <div className="font-[family-name:var(--font-kalam-var)] text-pencil text-xl text-center py-12">
-        ✏️ Reading project ledger...
+        ✏️ Reading client portal status...
       </div>
     );
   }
 
   const activeProject = projects[0];
   const activeBooking = bookings[0];
+  const clientName = profile?.name || user?.user_metadata?.name || user?.email?.split("@")[0] || "Client";
 
   return (
-    <div className="space-y-8">
-      {/* Welcome Banner */}
+    <div className="space-y-6">
+      
+      {/* Premium Studio Client Hero Header */}
       <WobblyCard
-        variant="postit"
-        decoration="thumbtack"
-        rotation={0.5}
+        variant="default"
         hover={false}
-        tilt={true}
-        className="w-full !p-8 border-3 border-pencil shadow-hard-lg relative"
+        className="w-full border-3 border-pencil bg-white p-6 sm:p-8 shadow-hard-md relative overflow-hidden"
       >
-        <h1 className="text-3xl md:text-4xl font-bold text-pencil mb-2 font-[family-name:var(--font-kalam-var)]">
-          Hello, {profile?.name || "Client"} 👋
-        </h1>
-        <p className="text-pencil-light text-lg md:text-xl font-[family-name:var(--font-patrick-var)] font-bold leading-relaxed max-w-2xl">
-          Welcome to your private client portal. Here you can monitor project phases, check invoices, download ZIP deliverables, and send messages directly.
-        </p>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="space-y-1 max-w-2xl">
+            <span className="inline-flex items-center gap-1.5 bg-marker/10 text-marker text-xs font-bold font-mono px-3 py-1 rounded-full border border-marker/20 font-[family-name:var(--font-kalam-var)]">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" /> CLIENT PORTAL WORKSPACE
+            </span>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-pencil tracking-tight font-[family-name:var(--font-kalam-var)]">
+              Welcome back, {clientName} 👋
+            </h1>
+            <p className="text-pencil-light text-sm sm:text-base font-[family-name:var(--font-patrick-var)] font-bold">
+              Track project milestones, download shared files, view receipts, and message your design engineer in real time.
+            </p>
+          </div>
+
+          {/* Quick Action Navigation Buttons */}
+          <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto pt-2 md:pt-0">
+            <Link href="/dashboard/messages" className="flex-1 md:flex-none">
+              <WobblyButton variant="marker" className="w-full !py-2 !px-4 text-xs sm:text-sm flex items-center justify-center gap-1.5">
+                <MessageSquare className="w-4 h-4" /> Message Studio
+              </WobblyButton>
+            </Link>
+            <Link href="/dashboard/files" className="flex-1 md:flex-none">
+              <WobblyButton variant="secondary" className="w-full !py-2 !px-4 text-xs sm:text-sm flex items-center justify-center gap-1.5">
+                <FileText className="w-4 h-4" /> File Cabinet
+              </WobblyButton>
+            </Link>
+          </div>
+        </div>
+
+        {/* Live Status Chips */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6 pt-5 border-t-2 border-dashed border-pencil/20">
+          <div className="p-3 bg-paper/30 border-2 border-pencil rounded-xl text-center">
+            <span className="text-[11px] text-pencil-light font-bold block uppercase tracking-wider font-mono">Active Project</span>
+            <span className="text-sm sm:text-base font-extrabold text-pencil font-[family-name:var(--font-kalam-var)] truncate block">
+              {activeProject?.title || "Custom Project"}
+            </span>
+          </div>
+
+          <div className="p-3 bg-paper/30 border-2 border-pencil rounded-xl text-center">
+            <span className="text-[11px] text-pencil-light font-bold block uppercase tracking-wider font-mono">Current Phase</span>
+            <span className="text-sm sm:text-base font-extrabold text-marker font-[family-name:var(--font-kalam-var)] block">
+              {activeProject?.status || "Planning"} ({activeProject?.progress_percent || 20}%)
+            </span>
+          </div>
+
+          <div className="p-3 bg-paper/30 border-2 border-pencil rounded-xl text-center col-span-2 sm:col-span-1">
+            <span className="text-[11px] text-pencil-light font-bold block uppercase tracking-wider font-mono">Payment Ledger</span>
+            <span className="text-sm sm:text-base font-extrabold text-ballpoint font-[family-name:var(--font-kalam-var)] block">
+              {payments.length} Logged Transactions
+            </span>
+          </div>
+        </div>
       </WobblyCard>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Project Tracker Card (Takes 2 Columns on desktop) */}
+        {/* Project Tracker Card (2 Columns) */}
         <div className="lg:col-span-2 space-y-6">
-          <h2 className="text-2xl font-bold text-pencil font-[family-name:var(--font-kalam-var)] flex items-center gap-2">
-            <Briefcase className="w-6 h-6 text-marker" />
-            Project Tracker
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-pencil font-[family-name:var(--font-kalam-var)] flex items-center gap-2">
+              <Briefcase className="w-6 h-6 text-marker" />
+              Project Tracker
+            </h2>
+            <Link href="/dashboard/projects" className="text-xs font-bold font-[family-name:var(--font-kalam-var)] text-ballpoint hover:underline flex items-center gap-1">
+              View Milestones <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
 
           {activeProject ? (
             <WobblyCard
@@ -287,60 +349,55 @@ export default function DashboardHome() {
               hover={false}
               className="border-3 border-pencil shadow-hard-md bg-white p-6 relative overflow-hidden"
             >
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
                 <div>
-                  <span className="text-xs text-pencil-lightest font-[family-name:var(--font-kalam-var)] font-bold">
-                    ACTIVE PROJECT
+                  <span className="text-xs text-pencil-light font-bold font-mono uppercase">
+                    DEVELOPMENT TRACKER
                   </span>
-                  <h3 className="text-2xl font-bold text-pencil mt-0.5">
+                  <h3 className="text-2xl font-bold text-pencil mt-0.5 font-[family-name:var(--font-kalam-var)]">
                     {activeProject.title}
                   </h3>
                 </div>
-                <div className="px-3 py-1 bg-marker/10 border-2 border-pencil text-pencil font-bold text-xs wobbly-sm font-[family-name:var(--font-kalam-var)]">
-                  Package: {activeProject.plan_name}
-                </div>
+                <span className="px-3 py-1 bg-marker/10 border-2 border-pencil text-pencil font-bold text-xs wobbly-sm font-[family-name:var(--font-kalam-var)]">
+                  Plan: {activeProject.plan_name || "Custom"}
+                </span>
               </div>
 
-              {/* Status Timesteps */}
-              <div className="mb-6">
-                <div className="flex justify-between text-sm text-pencil font-[family-name:var(--font-kalam-var)] font-bold mb-1.5 px-0.5">
-                  <span>Current Phase: <span className="text-marker">{activeProject.status}</span></span>
-                  <span>{activeProject.progress_percent}%</span>
+              {/* Progress percentage bar */}
+              <div className="space-y-2 mb-6">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="font-bold text-pencil font-[family-name:var(--font-kalam-var)]">
+                    Phase: <strong className="text-marker">{activeProject.status}</strong>
+                  </span>
+                  <span className="font-mono font-bold text-pencil">{activeProject.progress_percent}%</span>
                 </div>
 
-                {/* Pencil Wobbly Progress Bar */}
-                <div className="w-full h-8 border-3 border-pencil bg-paper wobbly-sm overflow-hidden p-0.5 relative">
+                <div className="w-full h-4 border-2 border-pencil rounded-full p-0.5 bg-paper">
                   <div 
-                    className="h-full bg-marker border-r-3 border-pencil wobbly-sm transition-all duration-500 ease-out" 
+                    className="h-full bg-marker rounded-full transition-all duration-500"
                     style={{ width: `${activeProject.progress_percent}%` }}
                   />
-                  {/* Subtle Grid overlay for handdrawn style */}
-                  <div className="absolute inset-0 bg-[radial-gradient(#2d2d2d_1px,transparent_1px)] bg-[size:10px_10px] opacity-10 pointer-events-none" />
                 </div>
               </div>
 
-              {/* Info Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 p-4 border-2 border-dashed border-pencil/20 bg-paper/30 wobbly-sm text-base">
+              {/* Grid Metadata */}
+              <div className="grid grid-cols-2 gap-4 p-4 bg-paper/20 border-2 border-pencil rounded-xl text-xs font-sans">
                 <div>
-                  <div className="text-xs text-pencil-lightest font-bold uppercase tracking-wider">Status</div>
-                  <div className="font-bold text-pencil font-[family-name:var(--font-patrick-var)] text-lg">{activeProject.status}</div>
+                  <span className="text-pencil-light font-bold block mb-0.5">CURRENT PHASE:</span>
+                  <span className="font-bold text-pencil text-sm font-[family-name:var(--font-kalam-var)]">{activeProject.status}</span>
                 </div>
                 <div>
-                  <div className="text-xs text-pencil-lightest font-bold uppercase tracking-wider">Estimated Timeline</div>
-                  <div className="font-bold text-pencil font-[family-name:var(--font-patrick-var)] text-lg">{activeProject.timeline || "7-10 Days"}</div>
-                </div>
-                <div className="col-span-2 sm:col-span-1">
-                  <div className="text-xs text-pencil-lightest font-bold uppercase tracking-wider">Payment Status</div>
-                  <div className="font-bold text-ballpoint font-[family-name:var(--font-patrick-var)] text-lg">
-                    {activeBooking?.payment_status === "Paid" ? "Success (Paid) ✓" : "Pending Invoice"}
-                  </div>
+                  <span className="text-pencil-light font-bold block mb-0.5">ESTIMATED TIMELINE:</span>
+                  <span className="font-bold text-pencil text-sm font-[family-name:var(--font-kalam-var)]">{activeProject.timeline || "7-10 Days"}</span>
                 </div>
               </div>
 
-              <div className="mt-6 flex justify-end">
-                <WobblyButton size="sm" href="/dashboard/projects">
-                  View Details & History <ArrowRight className="w-4 h-4 ml-1.5" />
-                </WobblyButton>
+              <div className="mt-5 pt-4 border-t-2 border-dashed border-pencil/20 flex justify-end">
+                <Link href="/dashboard/projects">
+                  <WobblyButton className="text-xs !py-1.5 !px-4 flex items-center gap-1.5">
+                    View Details & History <ArrowRight className="w-4 h-4" />
+                  </WobblyButton>
+                </Link>
               </div>
             </WobblyCard>
           ) : (
@@ -349,137 +406,101 @@ export default function DashboardHome() {
               hover={false}
               className="border-3 border-pencil shadow-hard-md bg-white p-8 text-center"
             >
-              <AlertCircle className="w-12 h-12 text-pencil-lightest mx-auto mb-3" />
-              <h3 className="text-xl font-bold text-pencil mb-2 font-[family-name:var(--font-kalam-var)]">
-                No active projects found!
+              <Briefcase className="w-10 h-10 text-pencil-lightest mx-auto mb-3" />
+              <h3 className="text-xl font-bold text-pencil font-[family-name:var(--font-kalam-var)]">
+                No active project tracker initialized
               </h3>
-              <p className="text-pencil-light text-base max-w-md mx-auto mb-6 leading-relaxed">
-                You haven&apos;t ordered any pricing packages yet. Explore my pricing plans and request a development slot to get started.
+              <p className="text-pencil-light text-sm font-[family-name:var(--font-patrick-var)] font-bold max-w-sm mx-auto mt-1 mb-4">
+                Your project tracker will appear here once Vasuu Studio initializes your website build specifications.
               </p>
-              <WobblyButton href="/#pricing">
-                Browse Plans & Book →
-              </WobblyButton>
+              <Link href="/dashboard/messages">
+                <WobblyButton variant="marker" className="text-xs">
+                  Message Design Studio
+                </WobblyButton>
+              </Link>
             </WobblyCard>
           )}
+
+          {/* Pending Invoices Notice (If any unpaid items) */}
+          {payments.filter(p => p.status?.toLowerCase() === "pending").map((pay) => (
+            <div key={pay.id} className="p-4 bg-amber-50 border-3 border-pencil rounded-xl text-amber-900 shadow-hard-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-bold text-base font-[family-name:var(--font-kalam-var)]">
+                    Pending Payment Due: ₹{pay.amount.toLocaleString("en-IN")}
+                  </h4>
+                  <p className="text-xs text-amber-800 font-[family-name:var(--font-patrick-var)] font-bold">
+                    For package: {pay.plan_name}. You can complete this payment securely online.
+                  </p>
+                </div>
+              </div>
+
+              <WobblyButton
+                onClick={() => handleDirectPay(pay)}
+                disabled={payingId === pay.id}
+                variant="ballpoint"
+                className="!py-2 !px-4 text-xs shrink-0 cursor-pointer"
+              >
+                <CreditCard className="w-4 h-4 mr-1.5" />
+                {payingId === pay.id ? "Opening..." : `Pay ₹${pay.amount} Online`}
+              </WobblyButton>
+            </div>
+          ))}
         </div>
 
-        {/* Sidebar Widgets (Notifications log, Account Info) */}
-        <div className="space-y-8">
-          
-          {/* Notifications Centre */}
-          <div className="space-y-4">
+        {/* Notifications & Quick Info Bar (1 Column) */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-pencil font-[family-name:var(--font-kalam-var)] flex items-center gap-2">
-              <Bell className="w-5 h-5 text-marker" />
-              Recent Logs
+              <Bell className="w-6 h-6 text-marker" />
+              Notifications
             </h2>
+          </div>
 
-            <WobblyCard
-              variant="default"
-              hover={false}
-              className="border-3 border-pencil shadow-hard-md bg-white p-5 space-y-4"
-            >
-              {notifications.length > 0 ? (
-                <div className="space-y-3.5 max-h-[280px] overflow-y-auto pr-1">
-                  {notifications.map((notif) => (
-                    <div 
-                      key={notif.id}
-                      onClick={() => markNotificationRead(notif.id)}
-                      className={`p-3 border-2 wobbly-sm transition-all duration-150 cursor-pointer ${
-                        notif.is_read 
-                          ? "border-pencil/10 bg-transparent opacity-60" 
-                          : "border-pencil/30 bg-postit hover:bg-postit/80"
-                      }`}
-                    >
-                      <div className="flex justify-between items-start gap-1">
-                        <span className="font-bold text-pencil text-sm font-[family-name:var(--font-kalam-var)]">
-                          {notif.title}
-                        </span>
-                        {!notif.is_read && (
-                          <span className="w-2 h-2 rounded-full bg-marker flex-shrink-0 mt-1" />
-                        )}
-                      </div>
-                      <p className="text-pencil-muted text-xs font-[family-name:var(--font-patrick-var)] font-bold mt-1 leading-normal">
-                        {notif.content}
-                      </p>
-                      <div className="text-[10px] text-pencil-lightest text-right mt-1.5 font-sans">
-                        {new Date(notif.created_at).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short"
-                        })}
-                      </div>
+          <WobblyCard
+            variant="default"
+            hover={false}
+            className="border-3 border-pencil bg-white p-4 shadow-hard-md relative"
+          >
+            {notifications.length > 0 ? (
+              <div className="space-y-3">
+                {notifications.map((notif) => (
+                  <div
+                    key={notif.id}
+                    onClick={() => !notif.is_read && markNotificationRead(notif.id)}
+                    className={`p-3 border-2 border-pencil wobbly-sm text-xs transition-all cursor-pointer ${
+                      notif.is_read ? "bg-paper/10 text-pencil-light" : "bg-postit/60 text-pencil font-bold shadow-hard-sm"
+                    }`}
+                  >
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="font-bold font-[family-name:var(--font-kalam-var)] text-pencil text-sm">
+                        {notif.title}
+                      </span>
+                      {!notif.is_read && (
+                        <span className="w-2 h-2 rounded-full bg-marker shrink-0 mt-1" />
+                      )}
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-pencil-light text-center text-sm font-[family-name:var(--font-patrick-var)] py-6">
+                    <p className="font-[family-name:var(--font-patrick-var)] text-sm leading-relaxed text-pencil">
+                      {notif.content}
+                    </p>
+                    <span className="text-[10px] text-pencil-lightest font-mono block mt-1.5 text-right">
+                      {new Date(notif.created_at).toLocaleDateString("en-IN")}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-pencil-lightest">
+                <Bell className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                <p className="font-[family-name:var(--font-patrick-var)] font-bold text-sm">
                   No notifications recorded yet.
                 </p>
-              )}
-            </WobblyCard>
-          </div>
-
-          {/* Invoices & Billing Summary Widget */}
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-pencil font-[family-name:var(--font-kalam-var)] flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-marker" />
-              Invoices & Billing Center
-            </h2>
-
-            <WobblyCard
-              variant="default"
-              hover={false}
-              className="border-3 border-pencil shadow-hard-md bg-white p-5 space-y-4 text-sm"
-            >
-              {(() => {
-                const pendingPay = payments.find(p => p.status?.toLowerCase() === "pending");
-                if (pendingPay) {
-                  return (
-                    <div className="p-4 bg-amber-50 border-2 border-amber-300 wobbly-sm space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-amber-900 font-[family-name:var(--font-kalam-var)] text-base">
-                          ⚠️ Pending Invoice
-                        </span>
-                        <span className="text-sm font-bold text-marker font-mono">
-                          ₹{pendingPay.amount?.toLocaleString("en-IN")}
-                        </span>
-                      </div>
-                      <p className="text-xs text-amber-800 font-[family-name:var(--font-patrick-var)] font-bold">
-                        Unpaid charge for <strong className="text-pencil">{pendingPay.plan_name}</strong>.
-                      </p>
-                      <WobblyButton
-                        size="sm"
-                        variant="marker"
-                        onClick={() => handleDirectPay(pendingPay)}
-                        disabled={payingId === pendingPay.id}
-                        className="w-full"
-                      >
-                        <CreditCard className="w-4 h-4 mr-1.5" />
-                        {payingId === pendingPay.id ? "Opening..." : `Pay ₹${pendingPay.amount?.toLocaleString("en-IN")} Online Now`}
-                      </WobblyButton>
-                    </div>
-                  );
-                }
-
-                return (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-ballpoint font-bold font-[family-name:var(--font-kalam-var)] text-base">
-                      <ShieldCheck className="w-5 h-5" />
-                      All Invoices Paid (Cleared)
-                    </div>
-                    <p className="text-xs text-pencil-light font-[family-name:var(--font-patrick-var)] font-bold">
-                      You have 0 pending invoices. You can inspect your transaction ledger and print tax receipts anytime.
-                    </p>
-                    <WobblyButton size="sm" variant="ghost" href="/dashboard/bookings" className="w-full">
-                      <Receipt className="w-4 h-4 mr-1.5" />
-                      View Invoices & Receipts →
-                    </WobblyButton>
-                  </div>
-                );
-              })()}
-            </WobblyCard>
-          </div>
-
+              </div>
+            )}
+          </WobblyCard>
         </div>
+
       </div>
 
       {/* Payment Success Modal */}
@@ -488,7 +509,7 @@ export default function DashboardHome() {
         onClose={() => setSuccessData(null)}
         data={successData}
         redirectUrl="/dashboard/bookings"
-        redirectText="View Invoices & Bookings"
+        redirectText="View Booking & Receipt"
       />
     </div>
   );

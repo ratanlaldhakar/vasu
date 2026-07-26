@@ -12,59 +12,70 @@ const useSupabase = () => supabase !== null;
 
 export async function getProjects(): Promise<Project[]> {
   if (useSupabase()) {
-    const { data, error } = await supabase!
-      .from("projects")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (!error && data) {
-      return data.map((d) => ({
-        id: d.id,
-        title: d.title,
-        slug: d.slug,
-        description: d.description,
-        coverImageUrl: d.cover_image_url,
-        gallery: d.gallery || [],
-        tags: d.tags || [],
-        liveUrl: d.live_url,
-        githubUrl: d.github_url,
-        problem: d.problem,
-        solution: d.solution,
-        tools: d.tools || [],
-        createdAt: d.created_at,
-      }));
+    try {
+      const { data, error } = await supabase!
+        .from("portfolio_projects")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (!error && data && data.length > 0 && data[0].slug) {
+        return data.map((d) => ({
+          id: d.id,
+          title: d.title,
+          slug: d.slug,
+          description: d.description,
+          coverImageUrl: d.cover_image_url,
+          gallery: d.gallery || [],
+          tags: d.tags || [],
+          liveUrl: d.live_url,
+          githubUrl: d.github_url,
+          problem: d.problem,
+          solution: d.solution,
+          tools: d.tools || [],
+          createdAt: d.created_at,
+          isFeatured: d.is_featured,
+          featuredBadge: d.featured_badge
+        }));
+      }
+    } catch (err) {
+      console.error("Error fetching portfolio projects:", err);
     }
-    console.error("Supabase error fetching projects, using mock fallback:", error);
   }
-  return localProjects;
+  return mockProjects;
 }
 
 export async function getProjectBySlug(slug: string): Promise<Project | null> {
+  const match = mockProjects.find((p) => p.slug === slug);
+  if (match) return match;
+
   if (useSupabase()) {
-    const { data, error } = await supabase!
-      .from("projects")
-      .select("*")
-      .eq("slug", slug)
-      .single();
-    if (!error && data) {
-      return {
-        id: data.id,
-        title: data.title,
-        slug: data.slug,
-        description: data.description,
-        coverImageUrl: data.cover_image_url,
-        gallery: data.gallery || [],
-        tags: data.tags || [],
-        liveUrl: data.live_url,
-        githubUrl: data.github_url,
-        problem: data.problem,
-        solution: data.solution,
-        tools: data.tools || [],
-        createdAt: data.created_at,
-      };
+    try {
+      const { data, error } = await supabase!
+        .from("portfolio_projects")
+        .select("*")
+        .eq("slug", slug)
+        .single();
+      if (!error && data) {
+        return {
+          id: data.id,
+          title: data.title,
+          slug: data.slug,
+          description: data.description,
+          coverImageUrl: data.cover_image_url,
+          gallery: data.gallery || [],
+          tags: data.tags || [],
+          liveUrl: data.live_url,
+          githubUrl: data.github_url,
+          problem: data.problem,
+          solution: data.solution,
+          tools: data.tools || [],
+          createdAt: data.created_at,
+        };
+      }
+    } catch (err) {
+      console.error("Error fetching project by slug:", err);
     }
-    console.error("Supabase error fetching project by slug:", error);
   }
-  return localProjects.find((p) => p.slug === slug) || null;
+  return null;
 }
 
 export async function getProducts(): Promise<Product[]> {
@@ -196,53 +207,102 @@ export async function createMessage(message: Omit<ContactMessage, "id" | "create
   return newMessage;
 }
 
-// Admin Write Operations (Mock Cache helpers)
-export async function adminAddProject(project: Omit<Project, "id" | "createdAt">): Promise<Project> {
-  const newProject: Project = {
-    ...project,
-    id: typeof crypto !== "undefined" ? crypto.randomUUID() : Math.random().toString(36).substring(2),
-    createdAt: new Date().toISOString().split("T")[0],
-  };
+export async function adminSaveProject(projectData: Partial<Project> & { title: string }): Promise<Project> {
+  const existingIndex = mockProjects.findIndex(p => p.id === projectData.id || (projectData.slug && p.slug === projectData.slug));
+  
+  if (existingIndex >= 0) {
+    // Update existing
+    const updated = { ...mockProjects[existingIndex], ...projectData };
+    mockProjects[existingIndex] = updated as Project;
 
-  if (useSupabase()) {
-    const { data, error } = await supabase!
-      .from("projects")
-      .insert([
-        {
-          title: project.title,
-          slug: project.slug,
-          description: project.description,
-          cover_image_url: project.coverImageUrl,
-          gallery: project.gallery,
-          tags: project.tags,
-          live_url: project.liveUrl,
-          github_url: project.githubUrl,
-          problem: project.problem,
-          solution: project.solution,
-          tools: project.tools,
-        },
-      ])
-      .select()
-      .single();
-    if (!error && data) {
-      return data;
+    if (useSupabase()) {
+      try {
+        await supabase!
+          .from("portfolio_projects")
+          .upsert({
+            id: updated.id,
+            title: updated.title,
+            slug: updated.slug,
+            description: updated.description,
+            cover_image_url: updated.coverImageUrl,
+            gallery: updated.gallery,
+            tags: updated.tags,
+            live_url: updated.liveUrl,
+            github_url: updated.githubUrl,
+            problem: updated.problem,
+            solution: updated.solution,
+            tools: updated.tools,
+            is_featured: updated.isFeatured,
+            featured_badge: updated.featuredBadge
+          });
+      } catch (err) {
+        console.error("Supabase upsert error:", err);
+      }
     }
-    console.error("Supabase error adding project:", error);
-  }
+    return updated as Project;
+  } else {
+    // Insert new
+    const newProject: Project = {
+      id: projectData.id || `p_${Date.now()}`,
+      title: projectData.title,
+      slug: projectData.slug || projectData.title.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      description: projectData.description || "",
+      coverImageUrl: projectData.coverImageUrl || "/vasuu_cosmic_hero.png",
+      gallery: projectData.gallery && projectData.gallery.length > 0 
+        ? projectData.gallery 
+        : [projectData.coverImageUrl || "/vasuu_cosmic_hero.png"],
+      tags: projectData.tags || ["Web Development"],
+      liveUrl: projectData.liveUrl || "",
+      githubUrl: projectData.githubUrl || "",
+      problem: projectData.problem || "",
+      solution: projectData.solution || "",
+      tools: projectData.tools || ["Next.js", "Tailwind CSS"],
+      createdAt: new Date().toISOString().split("T")[0],
+      isFeatured: projectData.isFeatured ?? true,
+      featuredBadge: projectData.featuredBadge || "✨ Showcase Project"
+    };
+    mockProjects.unshift(newProject);
 
-  localProjects = [newProject, ...localProjects];
-  return newProject;
+    if (useSupabase()) {
+      try {
+        await supabase!
+          .from("portfolio_projects")
+          .insert({
+            title: newProject.title,
+            slug: newProject.slug,
+            description: newProject.description,
+            cover_image_url: newProject.coverImageUrl,
+            gallery: newProject.gallery,
+            tags: newProject.tags,
+            live_url: newProject.liveUrl,
+            github_url: newProject.githubUrl,
+            problem: newProject.problem,
+            solution: newProject.solution,
+            tools: newProject.tools,
+            is_featured: newProject.isFeatured,
+            featured_badge: newProject.featuredBadge
+          });
+      } catch (err) {
+        console.error("Supabase insert error:", err);
+      }
+    }
+    return newProject;
+  }
 }
 
 export async function adminDeleteProject(id: string): Promise<boolean> {
-  if (useSupabase()) {
-    const { error } = await supabase!.from("projects").delete().eq("id", id);
-    if (!error) return true;
-    console.error("Supabase error deleting project:", error);
-    return false;
+  const index = mockProjects.findIndex(p => p.id === id);
+  if (index >= 0) {
+    mockProjects.splice(index, 1);
   }
 
-  localProjects = localProjects.filter((p) => p.id !== id);
+  if (useSupabase()) {
+    try {
+      await supabase!.from("portfolio_projects").delete().eq("id", id);
+    } catch (err) {
+      console.error("Supabase delete error:", err);
+    }
+  }
   return true;
 }
 

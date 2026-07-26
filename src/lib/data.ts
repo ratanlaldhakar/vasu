@@ -51,6 +51,53 @@ export interface ContactMessage {
 /* ===== MOCK PROJECTS ===== */
 export const mockProjects: Project[] = [
   {
+    id: "p_vasuu_vision",
+    title: "Vasuu Vision AI Studio",
+    slug: "vasuu-vision-studio",
+    description:
+      "A luxury dark-mode digital experience crafted for Vasuu Vision — pioneering cosmic aesthetics, live pattern mapping, human insight layers, and interactive strategy cards. Designed with fluid micro-interactions, rich visual typography, and cutting-edge web design.",
+    coverImageUrl: "/vasuu_cosmic_hero.png",
+    gallery: [
+      "/vasuu_cosmic_hero.png",
+      "/vasuu_cosmic_ideas.png",
+      "/vasuu_cosmic_details.png",
+      "/vasuu_cosmic_footer.png"
+    ],
+    tags: ["AI & Innovation", "Cosmic Design System", "UI/UX Architecture", "Web Development", "Interactive Motion"],
+    liveUrl: "https://vasuu.lovable.app/",
+    problem:
+      "Pioneering digital brands needed an awe-inspiring, cosmic-inspired platform that communicates high-level innovation, AI strategy, and human-centric design with seamless motion.",
+    solution:
+      "Crafted an interactive cosmic design system featuring live pattern mapping, human insight overlays, high-contrast typography, interactive service matrices, and fluid motion transitions. Built for maximum aesthetic engagement and high brand conversion.",
+    tools: ["Next.js", "TypeScript", "Tailwind CSS", "Framer Motion", "Vercel", "Cosmic Motion Assets"],
+    createdAt: "2026-07-27",
+    isFeatured: true,
+    featuredBadge: "✨ AI & Vision Studio",
+  },
+  {
+    id: "p_prisma",
+    title: "Prisma Creative Studio",
+    slug: "prisma-creative-studio",
+    description:
+      "A world-class cinematic web platform engineered for Prisma — a global collective of visual artists, filmmakers, and storytellers. Features immersive dark-mode UI/UX, studio-grade workflows, interactive storyboards, AI-assisted critiques, ambient soundscape capsules, and high-performance React animations.",
+    coverImageUrl: "/prisma_hero.png",
+    gallery: [
+      "/prisma_hero.png",
+      "/prisma_director.png",
+      "/prisma_workflows.png"
+    ],
+    tags: ["Creative Studio", "UI/UX Architecture", "Cinematic Dark Mode", "React & Next.js", "Visual Arts"],
+    liveUrl: "https://prismavasu.lovable.app/",
+    problem:
+      "Designed and engineered a high-impact digital hub for Prisma's international network of filmmakers, colorists, and visual artists who needed a studio-grade platform that reflects their high-end artistic identity.",
+    solution:
+      "Built a custom dark-themed web platform featuring cinematic visual hierarchy, elegant typography, floating navigation capsules, interactive project storyboards, smart AI feedback loops, ambient creative capsules, and seamless client inquiry funnels. Every component was hand-crafted to deliver an ultra-premium, immersive experience.",
+    tools: ["Next.js", "TypeScript", "Tailwind CSS", "Framer Motion", "Vercel", "Responsive Design", "Cinematic Dark UI"],
+    createdAt: "2026-07-27",
+    isFeatured: true,
+    featuredBadge: "🌟 Cinematic Visual Studio",
+  },
+  {
     id: "p0",
     title: "Amrit Yoga Center",
     slug: "amrit-yoga-center",

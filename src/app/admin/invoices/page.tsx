@@ -207,8 +207,25 @@ export default function AdminInvoicesPage() {
         plan_name: finalItemTitle
       };
 
+      // Dispatch automated email notification to client
+      fetch("/api/notifications/send-invoice-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clientName: selectedClient.name,
+          clientEmail: selectedClient.email,
+          planName: finalItemTitle,
+          itemDescription: invCustomDescription,
+          amountText: invPriceText,
+          paymentStatus: invStatus,
+          invoiceNumber: `INV-${payment.id.substring(0, 8).toUpperCase()}`,
+          date: new Date().toLocaleDateString("en-IN"),
+          paymentId: paymentId
+        })
+      }).catch(err => console.error("Email notification dispatch error:", err));
+
       setInvoices(prev => [newInv, ...prev]);
-      setFormSuccess(`Invoice generated successfully for ${selectedClient.name}!`);
+      setFormSuccess(`Invoice generated and email notice sent to ${selectedClient.email}!`);
       setInvPayId("");
       setInvCustomTitle("");
       setInvCustomDescription("");

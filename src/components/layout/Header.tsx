@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Palette, Mail, User, LayoutDashboard, ShieldCheck } from 'lucide-react';
+import { Menu, X, Palette, Mail, User, LayoutDashboard, ShieldCheck, Home, Briefcase, Tag, Info, PhoneCall, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 
@@ -40,18 +40,18 @@ export function Header() {
   if (isDashboard) return null;
 
   const navLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/portfolio', label: 'Portfolio' },
-    { href: '/#pricing', label: 'Pricing' },
-    { href: '/about', label: 'About' },
-    { href: '/contact', label: 'Contact' },
+    { href: '/', label: 'Home', icon: Home },
+    { href: '/portfolio', label: 'Portfolio', icon: Briefcase },
+    { href: '/#pricing', label: 'Pricing', icon: Tag },
+    { href: '/about', label: 'About', icon: Info },
+    { href: '/contact', label: 'Contact', icon: PhoneCall },
   ];
 
   const authTarget = user
     ? (isAdmin 
         ? { href: '/admin', label: 'Admin Panel', Icon: ShieldCheck, badgeClass: 'bg-marker text-white' }
-        : { href: '/dashboard', label: 'Dashboard', Icon: LayoutDashboard, badgeClass: 'bg-marker text-white' })
-    : { href: '/login', label: 'Login', Icon: User, badgeClass: 'bg-marker text-white' };
+        : { href: '/dashboard', label: 'Client Dashboard', Icon: LayoutDashboard, badgeClass: 'bg-marker text-white' })
+    : { href: '/login', label: 'Client Portal Login', Icon: User, badgeClass: 'bg-marker text-white' };
 
   const handleSectionClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     if (href.startsWith('/#') && pathname === '/') {
@@ -64,7 +64,7 @@ export function Header() {
   return (
     <header className={`sticky top-0 z-50 transition-all duration-300 border-b-3 border-pencil ${
       scrolled
-        ? 'bg-paper/85 backdrop-blur-md shadow-hard-sm h-16 md:h-18'
+        ? 'bg-paper/90 backdrop-blur-md shadow-hard-sm h-16 md:h-18'
         : 'bg-paper/95 h-16 md:h-20'
     }`}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-full flex items-center">
@@ -75,7 +75,7 @@ export function Header() {
               <Palette className="w-5 h-5 text-white" strokeWidth={3} />
             </div>
             <span className="font-[family-name:var(--font-kalam-var)] font-bold text-2xl text-pencil">
-              Vasu
+              Vasu Studio
             </span>
           </Link>
 
@@ -88,7 +88,7 @@ export function Header() {
                   key={link.href}
                   href={link.href}
                   onClick={(e) => handleSectionClick(e, link.href)}
-                  className="relative px-3.5 py-2 font-[family-name:var(--font-patrick-var)] text-lg text-pencil hover:text-marker transition-colors duration-100 group"
+                  className="relative px-3.5 py-2 font-[family-name:var(--font-patrick-var)] text-lg text-pencil hover:text-marker transition-colors duration-100 group font-bold"
                 >
                   {link.label}
                   {isActive ? (
@@ -114,10 +114,11 @@ export function Header() {
             </Link>
           </nav>
 
-          {/* Mobile Menu Toggle Button */}
+          {/* Mobile Menu Toggle Button (Aligned Right) */}
           <button
+            type="button"
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden w-12 h-12 flex items-center justify-center wobbly border-3 border-pencil bg-white shadow-hard-sm active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all duration-100"
+            className="md:hidden w-11 h-11 flex items-center justify-center wobbly border-3 border-pencil bg-white shadow-hard-sm active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all duration-100 cursor-pointer"
             aria-label="Toggle menu"
           >
             {mobileOpen ? (
@@ -133,39 +134,45 @@ export function Header() {
       <AnimatePresence>
         {mobileOpen && (
           <motion.nav
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="md:hidden border-t-3 border-pencil bg-paper overflow-hidden"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="md:hidden border-b-3 border-pencil bg-white shadow-hard-lg rounded-b-2xl overflow-hidden"
           >
-            <div className="max-w-6xl mx-auto px-5 py-6 flex flex-col gap-2">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={(e) => {
-                    setMobileOpen(false);
-                    handleSectionClick(e, link.href);
-                  }}
-                  className="wobbly-sm px-4 py-3 font-[family-name:var(--font-patrick-var)] text-xl text-pencil hover:bg-postit border-2 border-transparent hover:border-pencil transition-all duration-100 flex items-center min-h-[44px]"
-                >
-                  {link.label}
-                </Link>
-              ))}
+            <div className="max-w-6xl mx-auto px-4 py-5 flex flex-col gap-2 bg-paper/50">
+              {navLinks.map((link) => {
+                const IconComponent = link.icon;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={(e) => {
+                      setMobileOpen(false);
+                      handleSectionClick(e, link.href);
+                    }}
+                    className="wobbly-sm px-4 py-3 font-[family-name:var(--font-patrick-var)] font-bold text-xl text-pencil bg-white border-2 border-pencil hover:bg-postit transition-all duration-100 flex items-center justify-between min-h-[48px] shadow-hard-sm"
+                  >
+                    <div className="flex items-center gap-3">
+                      <IconComponent className="w-5 h-5 text-marker" />
+                      <span>{link.label}</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-pencil-light" />
+                  </Link>
+                );
+              })}
 
-              <div className="h-[2px] bg-pencil/15 my-2 wobbly" />
+              <div className="h-[2px] bg-pencil/20 my-2 wobbly" />
 
-              {/* Single Main Highlighted Login Button in Mobile Drawer */}
+              {/* Highlighted Login / Dashboard CTA Button */}
               <Link
                 href={authTarget.href}
                 onClick={() => setMobileOpen(false)}
-                className={`wobbly inline-flex items-center justify-center gap-2 px-5 py-4 border-3 border-pencil shadow-hard-sm font-[family-name:var(--font-kalam-var)] font-bold text-lg active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all duration-100 min-h-[52px] ${authTarget.badgeClass}`}
+                className={`wobbly inline-flex items-center justify-center gap-2 px-5 py-3.5 border-3 border-pencil shadow-hard-sm font-[family-name:var(--font-kalam-var)] font-bold text-lg active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all duration-100 min-h-[52px] rounded-xl ${authTarget.badgeClass}`}
               >
                 <authTarget.Icon className="w-5 h-5" strokeWidth={3} />
                 {authTarget.label}
               </Link>
-
             </div>
           </motion.nav>
         )}
@@ -173,5 +180,3 @@ export function Header() {
     </header>
   );
 }
-
-

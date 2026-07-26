@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, CreditCard, MessageSquare, Home } from "lucide-react";
+import { Users, CreditCard, MessageSquare, Home, Palette } from "lucide-react";
 
 export function AdminMobileNav() {
   const pathname = usePathname();
@@ -13,6 +13,12 @@ export function AdminMobileNav() {
       label: "Clients",
       icon: Users,
       isActive: pathname === "/admin" || pathname.startsWith("/admin/clients/")
+    },
+    {
+      href: "/admin/portfolio",
+      label: "Portfolio",
+      icon: Palette,
+      isActive: pathname === "/admin/portfolio"
     },
     {
       href: "/admin/invoices",

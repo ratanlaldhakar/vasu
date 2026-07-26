@@ -15,7 +15,8 @@ import {
   X, 
   Bell, 
   Palette,
-  CreditCard
+  CreditCard,
+  ChevronRight
 } from "lucide-react";
 
 import { ClientMobileNav } from "@/components/dashboard/ClientMobileNav";
@@ -53,13 +54,14 @@ export default function DashboardLayout({
     { href: "/dashboard", label: "Dashboard", icon: Home },
     { href: "/dashboard/projects", label: "My Projects", icon: Briefcase },
     { href: "/dashboard/messages", label: "Messages", icon: MessageSquare },
-    { href: "/dashboard/files", label: "Files", icon: FolderOpen },
+    { href: "/dashboard/files", label: "Files Cabinet", icon: FolderOpen },
     { href: "/dashboard/bookings", label: "Invoices & Bookings", icon: CreditCard },
     { href: "/dashboard/profile", label: "Profile Settings", icon: User },
   ];
 
   return (
     <div className="min-h-screen bg-paper bg-[radial-gradient(#e5e0d8_1.5px,transparent_1.5px)] bg-[size:24px_24px] flex flex-col md:flex-row text-pencil pb-20 md:pb-0">
+      
       {/* Mobile Top Header Bar */}
       <div className="md:hidden h-16 border-b-3 border-pencil bg-white/95 backdrop-blur-md flex items-center justify-between px-4 sticky top-0 z-40 shadow-hard-sm">
         <Link href="/" className="flex items-center gap-2 group">
@@ -70,23 +72,25 @@ export default function DashboardLayout({
             Vasu Portal
           </span>
         </Link>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="w-10 h-10 wobbly border-2 border-pencil bg-white flex items-center justify-center shadow-hard-sm active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
+
+        {/* 3-Line Menu Button on Right Side */}
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="w-10 h-10 wobbly border-2 border-pencil bg-white flex items-center justify-center shadow-hard-sm active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer"
+          aria-label="Toggle Navigation Menu"
+        >
+          {mobileMenuOpen ? <X className="w-5 h-5 text-pencil" /> : <Menu className="w-5 h-5 text-pencil" />}
+        </button>
       </div>
 
-      {/* Sidebar Navigation */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-72 md:w-64 bg-white border-r-3 border-pencil p-6 flex flex-col justify-between transition-transform duration-200 ease-in-out md:translate-x-0 md:static ${
-        mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+      {/* Sidebar Navigation: Toggling from RIGHT side on Mobile */}
+      <aside className={`fixed inset-y-0 right-0 md:left-0 z-50 w-72 md:w-64 bg-white border-l-3 md:border-l-0 md:border-r-3 border-pencil p-6 flex flex-col justify-between transition-transform duration-300 ease-in-out shadow-hard-lg md:shadow-none md:translate-x-0 md:static ${
+        mobileMenuOpen ? "translate-x-0" : "translate-x-full md:translate-x-0"
       }`}>
-        <div className="space-y-8">
-          {/* Logo */}
-          <div className="flex items-center justify-between">
+        <div className="space-y-6">
+          {/* Logo & Close Button */}
+          <div className="flex items-center justify-between border-b-2 border-dashed border-pencil/20 pb-4">
             <Link href="/" className="flex items-center gap-2.5 group">
               <div className="w-9 h-9 bg-marker border-3 border-pencil shadow-hard-sm flex items-center justify-center wobbly">
                 <Palette className="w-5 h-5 text-white" strokeWidth={3} />
@@ -96,23 +100,25 @@ export default function DashboardLayout({
               </span>
             </Link>
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(false)}
-              className="md:hidden p-1 border-2 border-pencil rounded-md"
+              className="md:hidden p-1.5 border-2 border-pencil rounded-lg hover:bg-marker hover:text-white transition-colors cursor-pointer"
+              title="Close menu"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* User Briefing */}
-          <div className="wobbly-sm border-2 border-dashed border-pencil/30 p-4 bg-paper bg-[radial-gradient(#e5e0d8_1px,transparent_1px)] bg-[size:16px_16px]">
-            <div className="text-xs text-pencil-lightest font-[family-name:var(--font-kalam-var)] font-bold">
-              👤 ACTIVE CLIENT
+          {/* User Profile Brief */}
+          <div className="wobbly-sm border-2 border-pencil p-3.5 bg-paper rounded-xl shadow-hard-sm">
+            <div className="text-[10px] text-marker font-[family-name:var(--font-kalam-var)] font-extrabold uppercase tracking-wider">
+              👤 ACTIVE CLIENT PORTAL
             </div>
-            <div className="font-bold text-base text-pencil mt-0.5 truncate">
-              {profile?.name || "Client"}
+            <div className="font-bold text-base text-pencil mt-0.5 truncate font-[family-name:var(--font-kalam-var)]">
+              {profile?.name || user.email?.split("@")[0] || "Client"}
             </div>
-            <div className="text-xs text-pencil-light truncate mt-0.5">
-              {profile?.email}
+            <div className="text-xs font-mono text-pencil-light truncate mt-0.5">
+              {user.email}
             </div>
           </div>
 
@@ -125,14 +131,17 @@ export default function DashboardLayout({
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`wobbly-sm flex items-center gap-3 px-4 py-3 border-2 border-transparent font-[family-name:var(--font-patrick-var)] text-lg font-bold transition-all duration-100 min-h-[48px] ${
+                  className={`wobbly-sm flex items-center justify-between px-4 py-3 border-2 border-pencil font-[family-name:var(--font-patrick-var)] text-lg font-bold transition-all duration-100 min-h-[48px] rounded-xl ${
                     isActive
                       ? "bg-postit border-pencil text-pencil shadow-hard-sm translate-x-[2px] translate-y-[2px]"
-                      : "hover:bg-erased/40 hover:border-pencil/20 text-pencil-muted hover:text-pencil"
+                      : "bg-white hover:bg-paper border-pencil/30 text-pencil"
                   }`}
                 >
-                  <item.icon className={`w-5 h-5 ${isActive ? "text-pencil" : "text-pencil-light"}`} />
-                  {item.label}
+                  <div className="flex items-center gap-3">
+                    <item.icon className={`w-5 h-5 ${isActive ? "text-pencil" : "text-pencil-light"}`} />
+                    <span>{item.label}</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 opacity-50" />
                 </Link>
               );
             })}
@@ -142,10 +151,11 @@ export default function DashboardLayout({
         {/* Sidebar Footer (Logout) */}
         <div className="pt-4 border-t-2 border-dashed border-pencil/20">
           <button
+            type="button"
             onClick={handleLogout}
-            className="w-full wobbly-sm flex items-center gap-3 px-4 py-3 border-2 border-transparent font-[family-name:var(--font-kalam-var)] text-base font-bold text-marker hover:bg-marker/5 hover:border-marker/30 transition-all duration-100 cursor-pointer min-h-[48px]"
+            className="w-full wobbly-sm flex items-center justify-center gap-2 px-4 py-3 border-2 border-pencil bg-marker/10 font-[family-name:var(--font-kalam-var)] text-base font-bold text-marker hover:bg-marker hover:text-white transition-all duration-100 cursor-pointer min-h-[48px] rounded-xl shadow-hard-sm"
           >
-            <LogOut className="w-5 h-5 text-marker" />
+            <LogOut className="w-5 h-5" />
             Logout Account
           </button>
         </div>
@@ -155,7 +165,7 @@ export default function DashboardLayout({
       {mobileMenuOpen && (
         <div
           onClick={() => setMobileMenuOpen(false)}
-          className="fixed inset-0 bg-pencil/40 backdrop-blur-xs z-40 md:hidden"
+          className="fixed inset-0 bg-pencil/50 backdrop-blur-xs z-40 md:hidden"
         />
       )}
 

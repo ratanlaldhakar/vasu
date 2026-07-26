@@ -5,8 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { WobblyCard } from "@/components/ui/WobblyCard";
 import { WobblyButton } from "@/components/ui/WobblyButton";
-import { WobblyTextarea } from "@/components/ui/WobblyTextarea";
-import { Send, User, MessageSquare } from "lucide-react";
+import { Send, User, MessageSquare, ShieldCheck, Sparkles } from "lucide-react";
 
 interface Message {
   id: string;
@@ -24,7 +23,7 @@ export default function ClientMessagesPage() {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
 
   const fetchMessages = async () => {
     if (!supabase || !user) return;
@@ -39,7 +38,7 @@ export default function ClientMessagesPage() {
         setMessages(data);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching messages:", err);
     } finally {
       setLoading(false);
     }
@@ -51,14 +50,16 @@ export default function ClientMessagesPage() {
     }
   }, [user]);
 
-  // Scroll to bottom whenever messages list updates
+  // Scroll inner chat container to bottom whenever messages update
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
   }, [messages]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !user) return;
+    if (!newMessage.trim() || !user || sending) return;
 
     setSending(true);
 
@@ -70,7 +71,7 @@ export default function ClientMessagesPage() {
         },
         body: JSON.stringify({
           clientId: user.id,
-          messageText: newMessage,
+          messageText: newMessage.trim(),
         }),
       });
 
@@ -91,6 +92,13 @@ export default function ClientMessagesPage() {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage(e);
+    }
+  };
+
   if (loading) {
     return (
       <div className="font-[family-name:var(--font-kalam-var)] text-pencil text-xl text-center py-12">
@@ -100,47 +108,71 @@ export default function ClientMessagesPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto flex flex-col h-[calc(100vh-140px)] md:h-[calc(100vh-100px)]">
-      {/* Header section */}
-      <div className="flex-shrink-0">
-        <h1 className="text-3xl md:text-4xl font-bold text-pencil font-[family-name:var(--font-kalam-var)] flex items-center gap-2">
-          <MessageSquare className="w-8 h-8 text-marker" />
-          Messages 💬
-        </h1>
-        <p className="text-pencil-light font-[family-name:var(--font-patrick-var)] font-bold text-lg">
-          Direct thread with Vasu. Share project specs, details, and reviews.
-        </p>
-      </div>
+    <div className="max-w-4xl mx-auto flex flex-col h-[calc(100vh-175px)] sm:h-[calc(100vh-140px)]">
+      
+      {/* Full-Height Professional Chat Card */}
+      <div className="bg-white border-3 border-pencil shadow-hard-lg rounded-2xl flex flex-col h-full overflow-hidden relative">
+        
+        {/* Chat Header Bar */}
+        <div className="px-4 py-3 bg-paper border-b-2 border-pencil flex items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="relative">
+              <div className="w-9 h-9 wobbly border-2 border-pencil bg-marker text-white flex items-center justify-center font-bold text-sm">
+                <MessageSquare className="w-5 h-5" />
+              </div>
+              <span className="w-3 h-3 bg-emerald-500 border-2 border-white rounded-full absolute -bottom-0.5 -right-0.5" />
+            </div>
 
-      {/* Chat Area */}
-      <div className="flex-1 min-h-0 border-3 border-pencil bg-paper wobbly-md p-4 overflow-y-auto space-y-4 shadow-hard-md bg-[radial-gradient(#e5e0d8_1.2px,transparent_1.2px)] bg-[size:16px_16px]">
-        {messages.length > 0 ? (
-          <div className="space-y-4">
-            {messages.map((msg) => {
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-pencil font-[family-name:var(--font-kalam-var)] leading-tight flex items-center gap-1.5">
+                Vasuu Studio Support <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              </h2>
+              <p className="text-xs font-bold text-pencil-light font-[family-name:var(--font-patrick-var)]">
+                Vasudev Dhakar • Direct Design Thread
+              </p>
+            </div>
+          </div>
+
+          <span className="text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-300 px-2.5 py-0.5 rounded-full hidden sm:inline-block">
+            ● Active
+          </span>
+        </div>
+
+        {/* Inner Scrollable Chat Messages Window */}
+        <div 
+          ref={chatScrollRef}
+          className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-3 bg-[radial-gradient(#e5e0d8_1.2px,transparent_1.2px)] bg-[size:18px_18px] bg-slate-50/50"
+        >
+          {messages.length > 0 ? (
+            messages.map((msg) => {
               const isAdmin = msg.is_from_admin;
               return (
                 <div 
                   key={msg.id}
                   className={`flex ${isAdmin ? "justify-start" : "justify-end"}`}
                 >
-                  <div className={`max-w-[80%] ${isAdmin ? "rotate-[0.3deg]" : "-rotate-[0.3deg]"}`}>
-                    {/* Bubble Card */}
-                    <div className={`wobbly border-2 border-pencil p-4 shadow-hard-sm ${
-                      isAdmin 
-                        ? "bg-postit text-pencil" 
-                        : "bg-white text-pencil"
-                    }`}>
-                      {/* Sender label */}
-                      <div className="text-xs text-pencil-lightest font-[family-name:var(--font-kalam-var)] font-bold mb-1.5 flex items-center gap-1">
+                  <div className={`max-w-[85%] sm:max-w-[75%]`}>
+                    <div 
+                      className={`p-3 sm:p-3.5 border-2 border-pencil rounded-xl shadow-hard-sm ${
+                        isAdmin 
+                          ? "bg-postit text-pencil rounded-tl-none" 
+                          : "bg-ballpoint text-white rounded-tr-none"
+                      }`}
+                    >
+                      <div className={`text-[11px] font-bold font-mono mb-1 flex items-center gap-1 ${
+                        isAdmin ? "text-pencil-light" : "text-white/80"
+                      }`}>
                         <User className="w-3 h-3" />
                         {isAdmin ? "Vasu (Admin)" : "You"}
                       </div>
-                      {/* Text */}
-                      <p className="text-base md:text-lg font-[family-name:var(--font-patrick-var)] font-bold leading-relaxed whitespace-pre-wrap">
+                      
+                      <p className="text-sm sm:text-base font-[family-name:var(--font-patrick-var)] font-bold leading-relaxed whitespace-pre-wrap">
                         {msg.message}
                       </p>
-                      {/* Timestamp */}
-                      <div className="text-[10px] text-pencil-lightest mt-2 text-right font-sans">
+
+                      <div className={`text-[9px] sm:text-[10px] font-mono mt-1.5 text-right ${
+                        isAdmin ? "text-pencil-lightest" : "text-white/70"
+                      }`}>
                         {new Date(msg.created_at).toLocaleString("en-IN", {
                           hour: "2-digit",
                           minute: "2-digit",
@@ -152,43 +184,45 @@ export default function ClientMessagesPage() {
                   </div>
                 </div>
               );
-            })}
-            <div ref={messagesEndRef} />
-          </div>
-        ) : (
-          <div className="h-full flex flex-col items-center justify-center text-center p-8">
-            <MessageSquare className="w-12 h-12 text-pencil-lightest mb-2" />
-            <h3 className="text-xl font-bold font-[family-name:var(--font-kalam-var)] text-pencil">
-              No messages yet
-            </h3>
-            <p className="text-pencil-light text-base max-w-sm font-[family-name:var(--font-patrick-var)] font-bold">
-              Introduce yourself and share details about your website designs. Write your first message below!
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Input box form */}
-      <form onSubmit={handleSendMessage} className="flex-shrink-0 flex items-end gap-3 bg-paper pt-2">
-        <div className="flex-1">
-          <WobblyTextarea
-            id="chat-input"
-            placeholder="Type your message here..."
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            disabled={sending}
-            rows={2}
-            className="!min-h-[50px] py-2 bg-white"
-          />
+            })
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center text-center p-6 my-auto">
+              <MessageSquare className="w-10 h-10 text-pencil-lightest mb-2" />
+              <h3 className="text-lg font-bold font-[family-name:var(--font-kalam-var)] text-pencil">
+                No messages in this thread yet
+              </h3>
+              <p className="text-pencil-light text-xs sm:text-sm font-[family-name:var(--font-patrick-var)] font-bold max-w-xs mt-1">
+                Type your questions, project details, or design requests below to chat directly with Vasuu Studio!
+              </p>
+            </div>
+          )}
         </div>
-        <WobblyButton
-          type="submit"
-          disabled={sending || !newMessage.trim()}
-          className="flex-shrink-0 !h-[50px] !w-[50px] flex items-center justify-center p-0 cursor-pointer"
-        >
-          <Send className="w-5 h-5 text-pencil active:scale-95" />
-        </WobblyButton>
-      </form>
+
+        {/* STICKY FIXED-BOTTOM CHAT INPUT BAR (No Scrolling Needed) */}
+        <div className="p-2.5 sm:p-3 bg-white border-t-2 border-pencil shrink-0">
+          <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Type your message here..."
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={sending}
+              className="flex-1 wobbly border-2 border-pencil bg-paper/20 px-3.5 py-2.5 font-[family-name:var(--font-patrick-var)] text-pencil text-base focus:outline-none focus:bg-white"
+            />
+
+            <button
+              type="submit"
+              disabled={sending || !newMessage.trim()}
+              className="h-[46px] px-4 bg-ballpoint text-white font-[family-name:var(--font-kalam-var)] font-bold text-sm rounded-lg border-2 border-pencil hover:bg-pencil transition-colors flex items-center justify-center gap-1.5 shadow-hard-sm disabled:opacity-50 cursor-pointer shrink-0"
+            >
+              <Send className="w-4 h-4" />
+              <span className="hidden sm:inline">{sending ? "Sending..." : "Send"}</span>
+            </button>
+          </form>
+        </div>
+
+      </div>
     </div>
   );
 }
