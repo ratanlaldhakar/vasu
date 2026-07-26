@@ -409,7 +409,12 @@ export function InvoiceModal({ invoice, onClose }: InvoiceModalProps) {
       {/* Global CSS for Clean Single-Page Print Mode */}
       <style jsx global>{`
         @media print {
-          /* Hide all page layouts, headers, navbars, and sidebars completely */
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+
           html, body {
             background: #ffffff !important;
             margin: 0 !important;
@@ -418,41 +423,41 @@ export function InvoiceModal({ invoice, onClose }: InvoiceModalProps) {
             overflow: visible !important;
           }
 
-          /* Hide everything in the body by default */
-          body > * {
+          /* Hide all body elements by default using visibility */
+          body * {
+            visibility: hidden !important;
+          }
+
+          /* Hide print action controls explicitly */
+          .print\\:hidden,
+          button {
             display: none !important;
           }
 
-          /* Show only the printable invoice component */
-          #printable-invoice {
-            display: block !important;
+          /* Show ONLY the printable invoice element and all its children */
+          #printable-invoice,
+          #printable-invoice * {
             visibility: visible !important;
+          }
+
+          /* Position printable invoice at top left of paper page */
+          #printable-invoice {
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
             width: 100% !important;
             margin: 0 !important;
-            padding: 20px !important;
+            padding: 10px !important;
             box-shadow: none !important;
             border: none !important;
+            background: #ffffff !important;
             page-break-after: avoid !important;
             page-break-inside: avoid !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
           }
 
-          #printable-invoice * {
-            visibility: visible !important;
-          }
-
-          /* Force exact A4 Portrait Single Page */
           @page {
             size: A4 portrait;
             margin: 10mm;
-          }
-
-          .print\\:hidden {
-            display: none !important;
           }
         }
       `}</style>
