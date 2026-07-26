@@ -107,7 +107,7 @@ export default function BookingsAndInvoicesPage() {
       const orderData = await res.json();
 
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_SyoANIIxpmdHxD",
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || orderData.keyId || "rzp_live_TIDMY6pOJhzbWt",
         amount: orderData.amount,
         currency: "INR",
         name: "Vasuu Design Studio",
