@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Printer, X, CheckCircle2, ShieldCheck, CreditCard } from "lucide-react";
 import { WobblyButton } from "./WobblyButton";
 import { supabase } from "@/lib/supabase";
+import { PaymentSuccessModal, PaymentSuccessData } from "./PaymentSuccessModal";
 
 export interface InvoiceData {
   invoiceNumber: string;
@@ -43,6 +44,7 @@ const loadRazorpayScript = () => {
 export function InvoiceModal({ invoice, onClose }: InvoiceModalProps) {
   const [paying, setPaying] = useState(false);
   const [currentStatus, setCurrentStatus] = useState<string>("");
+  const [successData, setSuccessData] = useState<PaymentSuccessData | null>(null);
 
   useEffect(() => {
     if (invoice) {
@@ -108,10 +110,22 @@ export function InvoiceModal({ invoice, onClose }: InvoiceModalProps) {
             }
 
             setCurrentStatus("SUCCESS");
-            alert(`🎉 Payment of ${invoice.amountText} completed successfully!`);
+            setSuccessData({
+              amount: invoice.amountText,
+              planName: invoice.planName,
+              paymentId: response.razorpay_payment_id,
+              orderId: response.razorpay_order_id,
+              clientEmail: invoice.clientEmail
+            });
           } catch (err: any) {
             console.error("Payment update error:", err);
-            alert("Payment completed! Refresh page to update ledger status.");
+            setSuccessData({
+              amount: invoice.amountText,
+              planName: invoice.planName,
+              paymentId: response.razorpay_payment_id,
+              orderId: response.razorpay_order_id,
+              clientEmail: invoice.clientEmail
+            });
           } finally {
             setPaying(false);
           }
@@ -389,6 +403,17 @@ export function InvoiceModal({ invoice, onClose }: InvoiceModalProps) {
           }
         }
       `}</style>
+      {/* Payment Success Modal */}
+      <PaymentSuccessModal
+        isOpen={!!successData}
+        onClose={() => {
+          setSuccessData(null);
+          onClose();
+        }}
+        data={successData}
+        redirectUrl="/dashboard"
+        redirectText="View Client Dashboard"
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { WobblyCard } from "@/components/ui/WobblyCard";
 import { WobblyButton } from "@/components/ui/WobblyButton";
+import { PaymentSuccessModal, PaymentSuccessData } from "@/components/ui/PaymentSuccessModal";
 import { Briefcase, Bell, ArrowRight, AlertCircle, CreditCard, Receipt, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
@@ -70,6 +71,7 @@ export default function DashboardHome() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [payingId, setPayingId] = useState<string | null>(null);
+  const [successData, setSuccessData] = useState<PaymentSuccessData | null>(null);
 
   const fetchDashboardData = async () => {
     if (!supabase || !user) return;
@@ -185,10 +187,23 @@ export default function DashboardHome() {
                 .update({ payment_status: "Paid" })
                 .eq("client_id", user.id);
             }
-            alert(`🎉 Payment of ₹${pay.amount?.toLocaleString("en-IN")} completed successfully!`);
+            setSuccessData({
+              amount: pay.amount,
+              planName: pay.plan_name,
+              paymentId: response.razorpay_payment_id,
+              orderId: response.razorpay_order_id,
+              clientEmail: user.email
+            });
             fetchDashboardData();
           } catch (err) {
             console.error("Payment update error:", err);
+            setSuccessData({
+              amount: pay.amount,
+              planName: pay.plan_name,
+              paymentId: response.razorpay_payment_id,
+              orderId: response.razorpay_order_id,
+              clientEmail: user.email
+            });
           } finally {
             setPayingId(null);
           }
@@ -466,6 +481,15 @@ export default function DashboardHome() {
 
         </div>
       </div>
+
+      {/* Payment Success Modal */}
+      <PaymentSuccessModal
+        isOpen={!!successData}
+        onClose={() => setSuccessData(null)}
+        data={successData}
+        redirectUrl="/dashboard/bookings"
+        redirectText="View Invoices & Bookings"
+      />
     </div>
   );
 }
