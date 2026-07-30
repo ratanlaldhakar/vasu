@@ -5,7 +5,15 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: '/api/',
+      disallow: [
+        '/api/',
+        '/admin/',
+        '/dashboard/',
+        '/login',
+        '/signup',
+        '/forgot-password',
+        '/reset-password',
+      ],
     },
     sitemap: 'https://vasuu.bond/sitemap.xml',
   };

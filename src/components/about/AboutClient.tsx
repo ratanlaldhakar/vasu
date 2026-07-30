@@ -77,8 +77,9 @@ export default function AboutClient() {
           variants={revealVariants}
           className="text-center mb-16"
         >
-          <SectionHeading subtitle="The story behind the sketches">
+          <SectionHeading subtitle="The story behind the sketches" as="h1">
             About <span className="text-marker">Me</span>
+            <span className="sr-only"> — Vasudev Dhakar | Web Developer &amp; UI Designer in Bhilwara, Rajasthan</span>
           </SectionHeading>
         </motion.div>
 

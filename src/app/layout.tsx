@@ -29,16 +29,39 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://vasuu.bond"),
   title: {
-    default: "Vasu — Web Developer & UI/UX Designer Portfolio",
-    template: "%s | Vasu Portfolio"
+    default: "Vasudev Dhakar | Full Stack Web Developer & UI/UX Designer in Bhilwara",
+    template: "%s | Vasudev Dhakar"
   },
-  description: "Explore Vasu's (Vasudev Dhakar) creative design and development portfolio. Specializing in high-performance Next.js websites, React apps, and premium hand-drawn UI/UX styles in Bhilwara, Rajasthan, India.",
-  keywords: ["portfolio", "design", "UI kits", "templates", "graphics", "Vasu", "Bhilwara", "Rajasthan", "Web Developer"],
+  description: "Vasudev Dhakar (Vasu) is a premier Full Stack Web Developer & UI/UX Designer in Bhilwara, Rajasthan, India. Specializing in Next.js, React, high-performance business websites, and modern UI/UX design.",
+  keywords: [
+    "Vasudev Dhakar",
+    "Vasu dev dhakar",
+    "Vasu Developer",
+    "Vasu Web Developer",
+    "Vasu UI Designer",
+    "Vasu Portfolio",
+    "Website Developer Bhilwara",
+    "Web Developer Bhilwara",
+    "UI UX Designer Bhilwara",
+    "Freelance Web Developer Rajasthan",
+    "Portfolio Developer India",
+    "React Developer Bhilwara",
+    "Next.js Developer Rajasthan",
+    "Frontend Developer Bhilwara",
+    "Website Designer Bhilwara",
+    "Web Designer Bhilwara",
+    "Responsive Website Development"
+  ],
   authors: [{ name: "Vasudev Dhakar", url: "https://vasuu.bond" }],
   creator: "Vasudev Dhakar",
   publisher: "Vasudev Dhakar",
-  applicationName: "Vasu Portfolio",
+  applicationName: "Vasudev Dhakar Portfolio",
   generator: "Next.js",
+  formatDetection: {
+    email: true,
+    address: true,
+    telephone: true,
+  },
   robots: {
     index: true,
     follow: true,
@@ -51,24 +74,42 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Vasu — Web Developer & UI/UX Designer Portfolio",
-    description: "Explore Vasu's creative design and portfolio. Specializing in high-performance Next.js websites and premium UI/UX styles.",
+    title: "Vasudev Dhakar | Full Stack Web Developer & UI/UX Designer in Bhilwara",
+    description: "Explore Vasudev Dhakar's (Vasu) creative web development and UI/UX design portfolio. Expert Next.js & React developer based in Bhilwara, Rajasthan, India.",
     url: "https://vasuu.bond",
-    siteName: "Vasu Portfolio",
+    siteName: "Vasudev Dhakar Portfolio",
     locale: "en_IN",
     type: "website",
+    images: [
+      {
+        url: "/icon.png",
+        width: 512,
+        height: 512,
+        alt: "Vasudev Dhakar - Web Developer & UI/UX Designer Portfolio",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Vasu — Web Developer & UI/UX Designer Portfolio",
-    description: "Explore Vasu's creative design and portfolio.",
+    title: "Vasudev Dhakar | Full Stack Web Developer & UI/UX Designer",
+    description: "Vasudev Dhakar (Vasu) - Professional Web Developer and UI/UX Designer in Bhilwara, Rajasthan, India.",
     creator: "@VASUGAMER09",
+    images: ["/icon.png"],
   },
   icons: {
-    icon: "/icon.png",
-    apple: "/icon.png",
+    icon: [
+      { url: "/icon.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icon.png" },
+    ],
+    shortcut: ["/icon.png"],
   },
+  manifest: "/manifest.json",
   category: "technology",
+  verification: {
+    google: "google-site-verification-placeholder",
+  },
 };
 
 import { AuthProvider } from "@/context/AuthContext";

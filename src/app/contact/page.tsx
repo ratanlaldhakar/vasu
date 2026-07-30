@@ -5,31 +5,42 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ContactForm } from "@/components/contact/ContactForm";
 
 export const metadata: Metadata = {
-  title: "Contact Vasu — Hire Freelance Web Developer in Bhilwara",
-  description: "Get in touch with Vasu (Vasudev Dhakar) for Next.js website design & custom frontend development inquiries. Professional web development services in Bhilwara, Rajasthan.",
+  title: "Hire Vasudev Dhakar | Website Developer in Bhilwara",
+  description: "Get in touch with Vasudev Dhakar (Vasu) for custom Next.js website design & development in Bhilwara, Rajasthan, India. Hire a professional freelance developer.",
   keywords: [
-    "Contact Vasudev Dhakar",
+    "Hire Vasudev Dhakar",
     "Hire Web Developer Bhilwara",
     "Freelance Developer Contact Rajasthan",
     "Vasu Contact Details",
-    "Website Development Quote Bhilwara"
+    "Website Development Quote Bhilwara",
+    "Vasudev Dhakar Email",
+    "Web Developer Rajasthan Contact"
   ],
   alternates: {
     canonical: "https://vasuu.bond/contact",
   },
   openGraph: {
-    title: "Contact Vasu — Hire Freelance Web Developer in Bhilwara",
-    description: "Get in touch with Vasu for freelance web design and development inquiries in Bhilwara, Rajasthan.",
+    title: "Hire Vasudev Dhakar | Website Developer in Bhilwara",
+    description: "Get in touch with Vasudev Dhakar (Vasu) for freelance web design and development inquiries in Bhilwara, Rajasthan, India.",
     url: "https://vasuu.bond/contact",
-    siteName: "Vasu Portfolio",
+    siteName: "Vasudev Dhakar Portfolio",
     locale: "en_IN",
     type: "website",
+    images: [
+      {
+        url: "https://vasuu.bond/icon.png",
+        width: 512,
+        height: 512,
+        alt: "Hire Vasudev Dhakar - Web Developer in Bhilwara",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Contact Vasu — Hire Freelance Web Developer in Bhilwara",
-    description: "Get in touch with Vasu for freelance web design and development inquiries.",
+    title: "Hire Vasudev Dhakar | Website Developer in Bhilwara",
+    description: "Get in touch with Vasudev Dhakar (Vasu) for freelance web design and development inquiries.",
     creator: "@VASUGAMER09",
+    images: ["https://vasuu.bond/icon.png"],
   },
 };
 
@@ -41,34 +52,56 @@ const socialLinks = [
 ];
 
 export default function ContactPage() {
-  const breadcrumbJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    'itemListElement': [
-      {
-        '@type': 'ListItem',
-        'position': 1,
-        'name': 'Home',
-        'item': 'https://vasuu.bond'
-      },
-      {
-        '@type': 'ListItem',
-        'position': 2,
-        'name': 'Contact',
-        'item': 'https://vasuu.bond/contact'
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      'itemListElement': [
+        {
+          '@type': 'ListItem',
+          'position': 1,
+          'name': 'Home',
+          'item': 'https://vasuu.bond'
+        },
+        {
+          '@type': 'ListItem',
+          'position': 2,
+          'name': 'Contact',
+          'item': 'https://vasuu.bond/contact'
+        }
+      ]
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'ContactPage',
+      'name': 'Contact Vasudev Dhakar',
+      'description': 'Contact Vasudev Dhakar (Vasu) for freelance web development and UI/UX design services in Bhilwara, Rajasthan, India.',
+      'url': 'https://vasuu.bond/contact',
+      'mainEntity': {
+        '@type': 'ProfessionalService',
+        'name': 'Vasudev Dhakar Web Development',
+        'email': 'vasu@amrityogacenter.in',
+        'telephone': '+917742658593',
+        'address': {
+          '@type': 'PostalAddress',
+          'addressLocality': 'Bhilwara',
+          'addressRegion': 'Rajasthan',
+          'addressCountry': 'India'
+        }
       }
-    ]
-  };
+    }
+  ];
 
   return (
     <div className="py-16 md:py-24 px-4">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className="max-w-4xl mx-auto">
-        <SectionHeading subtitle="Got a project in mind? Let's chat!">
+        <SectionHeading subtitle="Got a project in mind? Let's chat!" as="h1">
           Get in <span className="text-marker">Touch</span>
+          <span className="sr-only"> — Hire Vasudev Dhakar, Website Developer in Bhilwara</span>
         </SectionHeading>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">

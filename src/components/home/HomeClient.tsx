@@ -328,6 +328,7 @@ export default function HomeClient() {
               className="text-4xl font-bold text-pencil mb-4 leading-[1.2]"
             >
               Hi, I&apos;m <span className="text-marker squiggly-underline inline-block">Vasu</span>
+              <span className="sr-only"> — Vasudev Dhakar | Full Stack Web Developer &amp; UI/UX Designer in Bhilwara, Rajasthan</span>
             </motion.h1>
           </div>
           <div className="hidden md:block w-full">
@@ -345,6 +346,7 @@ export default function HomeClient() {
               >
                 Vasu
               </motion.span>
+              <span className="sr-only"> — Vasudev Dhakar | Full Stack Web Developer &amp; UI/UX Designer in Bhilwara, Rajasthan</span>
             </motion.h1>
           </div>
 

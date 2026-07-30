@@ -16,17 +16,17 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const project = await getProjectBySlug(slug);
   if (!project) return { title: 'Project Not Found' };
   return {
-    title: `${project.title} — Vasu Design & Development Portfolio`,
+    title: `${project.title} | Website Portfolio by Vasudev Dhakar`,
     description: project.description,
-    keywords: [...(project.tags || []), "Vasudev Dhakar Portfolio", "Vasu projects", "Web design Bhilwara"],
+    keywords: [...(project.tags || []), "Vasudev Dhakar Portfolio", "Vasu projects", "Web design Bhilwara", "Website Developer Rajasthan"],
     alternates: {
       canonical: `https://vasuu.bond/portfolio/${slug}`,
     },
     openGraph: {
-      title: `${project.title} — Vasu Design & Development Portfolio`,
+      title: `${project.title} | Website Portfolio by Vasudev Dhakar`,
       description: project.description,
       url: `https://vasuu.bond/portfolio/${slug}`,
-      siteName: 'Vasu Portfolio',
+      siteName: 'Vasudev Dhakar Portfolio',
       locale: 'en_IN',
       type: 'article',
       images: [
@@ -34,13 +34,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
           url: project.coverImageUrl,
           width: 1200,
           height: 800,
-          alt: project.title,
+          alt: `${project.title} - Designed by Vasudev Dhakar`,
         }
       ]
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${project.title} — Vasu Design & Development Portfolio`,
+      title: `${project.title} | Website Portfolio by Vasudev Dhakar`,
       description: project.description,
       creator: '@VASUGAMER09',
       images: [project.coverImageUrl],

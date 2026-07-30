@@ -84,7 +84,7 @@ export function PortfolioFilterList({ projects }: PortfolioFilterListProps) {
               <div className="wobbly-md overflow-hidden border-2 border-pencil mb-4 -mx-2 -mt-2">
                 <Image
                   src={project.coverImageUrl}
-                  alt={project.title}
+                  alt={`${project.title} - Website Development & UI UX Design by Vasudev Dhakar`}
                   width={400}
                   height={300}
                   className="w-full h-56 md:h-52 object-cover transition-transform duration-500 ease-out group-hover:scale-110"

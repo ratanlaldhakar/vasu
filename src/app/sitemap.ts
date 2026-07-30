@@ -4,26 +4,44 @@ import { getProjects } from '@/lib/db';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://vasuu.bond';
 
-  // Base routes configuration
-  const routes = ['', '/about', '/contact', '/portfolio'].map((route) => ({
-    url: `${baseUrl}${route}`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: route === '' ? 1.0 : 0.8,
-  }));
+  const baseRoutes: MetadataRoute.Sitemap = [
+    {
+      url: baseUrl,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 1.0,
+    },
+    {
+      url: `${baseUrl}/portfolio`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/about`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/contact`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+  ];
 
-  // Fetch all dynamic portfolio projects and add to sitemap
   try {
     const projects = await getProjects();
-    const projectRoutes = projects.map((project) => ({
+    const projectRoutes: MetadataRoute.Sitemap = projects.map((project) => ({
       url: `${baseUrl}/portfolio/${project.slug}`,
       lastModified: new Date(project.createdAt || new Date()),
-      changeFrequency: 'weekly' as const,
-      priority: 0.6,
+      changeFrequency: 'weekly',
+      priority: 0.7,
     }));
-    return [...routes, ...projectRoutes];
+    return [...baseRoutes, ...projectRoutes];
   } catch (error) {
     console.error('Error generating dynamic sitemap routes:', error);
-    return routes;
+    return baseRoutes;
   }
 }
